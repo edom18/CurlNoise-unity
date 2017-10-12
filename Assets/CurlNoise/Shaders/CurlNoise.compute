@@ -9,9 +9,48 @@ float randomX2;
 float randomY2;
 float randomZ2;
 
+float3 Mod289(float3 x)
+{
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+float4 Mod289(float4 x)
+{
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+
+float4 Permute(float4 x)
+{
+    return Mod289(((x * 34.0) + 1.0) * x);
+}
+
+float4 TaylorInvSqrt(float4 r)
+{
+    return 1.79284291400159 - 0.85373472095314 * r;
+}
+
+float SnoiseScalar(float3 vec)
+{
+    return 0.0;
+}
+
 float3 Snoise(float3 vec)
 {
-    return float3(1.0, 1.0, 1.0);
+    float x = SnoiseScalar(vec);
+
+    float y = SnoiseScalar(float3(
+        vec.y + randomY1,
+        vec.z + randomZ1,
+        vec.x + randomX1
+    ));
+
+    float z = SnoiseScalar(float3(
+        vec.z + randomZ2,
+        vec.x + randomX2,
+        vec.y + randomY2
+    ));
+
+    return float3(x, y, z);
 }
 
 float3 CurlNose(float3 p)
