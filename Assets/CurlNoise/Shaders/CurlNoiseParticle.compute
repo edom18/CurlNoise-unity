@@ -5,6 +5,7 @@ struct Particle
     int id;
     bool active;
     float3 position;
+    float3 color;
     float scale;
     float time;
     float lifeTime;

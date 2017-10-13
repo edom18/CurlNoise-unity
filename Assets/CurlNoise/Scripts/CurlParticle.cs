@@ -11,6 +11,7 @@ namespace CurlNoiseSample
         public int id;
         public bool active;
         public Vector3 position;
+        public Vector3 color;
         public float scale;
         public float time;
         public float liefTime;
@@ -38,6 +39,9 @@ namespace CurlNoiseSample
 
         [SerializeField]
         ComputeShader _computeShader;
+
+        [SerializeField]
+        private Color _particleColor;
 
         private Mesh _combinedMesh;
         private List<Material> _materials = new List<Material>();
@@ -143,11 +147,16 @@ namespace CurlNoiseSample
                 float x = Random.Range(-50f, 50f);
                 float y = Random.Range(-50f, 50f);
                 float z = Random.Range(-50f, 50f);
+
+                float r = _particleColor.r;
+                float g = _particleColor.g;
+                float b = _particleColor.b;
                 Particle p = new Particle
                 {
                     id = i,
                     active = true,
                     position = new Vector3(x, y, z),
+                    color = new Vector3(r, g, b),
                     scale = 1.0f,
                     time = 0,
                     liefTime = Random.Range(_minLifeTime, _maxLifeTime),
