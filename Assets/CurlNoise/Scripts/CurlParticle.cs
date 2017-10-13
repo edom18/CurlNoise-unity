@@ -9,7 +9,9 @@ namespace CurlNoiseSample
     public struct Particle
     {
         public int id;
+        public bool active;
         public Vector3 position;
+        public float scale;
         public float time;
         public float liefTime;
     }
@@ -21,6 +23,12 @@ namespace CurlNoiseSample
 
         [SerializeField]
         private int _maxParticleNum = 1000;
+
+        [SerializeField]
+        private float _minLifeTime = 1f;
+
+        [SerializeField]
+        private float _maxLifeTime = 5f;
 
         [SerializeField]
         private Mesh _mesh;
@@ -138,9 +146,11 @@ namespace CurlNoiseSample
                 Particle p = new Particle
                 {
                     id = i,
+                    active = true,
                     position = new Vector3(x, y, z),
+                    scale = 1.0f,
                     time = 0,
-                    liefTime = 10f,
+                    liefTime = Random.Range(_minLifeTime, _maxLifeTime),
                 };
 
                 particles[i] = p;

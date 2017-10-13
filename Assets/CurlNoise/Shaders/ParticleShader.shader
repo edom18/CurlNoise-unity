@@ -17,7 +17,9 @@
         struct Particle
         {
             int id;
+            bool active;
             float3 position;
+            float scale;
             float time;
             float lifeTime;
         };
@@ -51,6 +53,7 @@
         {
 #ifdef SHADER_API_D3D11
             Particle p = _Particles[getId(v.uv1)];
+            v.vertex.xyz *= p.scale;
             v.vertex.xyz += p.position;
 #endif
 
