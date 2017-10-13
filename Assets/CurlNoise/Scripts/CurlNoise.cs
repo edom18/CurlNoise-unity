@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace CurlNoiseSample
@@ -7,27 +9,68 @@ namespace CurlNoiseSample
     public class CurlNoise : MonoBehaviour
     {
         [SerializeField]
+        private Transform[] _targets;
+
+        [SerializeField]
         private ComputeShader _shader;
+
+        private ComputeBuffer _results;
+        private ComputeBuffer _positions;
+        private int _kernelIndex;
+
+        private void OnDisable()
+        {
+            _results.Release();
+            _positions.Release();
+        }
 
         private void Start()
         {
-            int kernelIndex = _shader.FindKernel("CurlNoiseMain");
+            Initialize();
+        }
 
-            int num = 10;
-            ComputeBuffer buffer = new ComputeBuffer(num, sizeof(int));
+        private void Update()
+        {
+            UpdatePosition();
+        }
 
-            _shader.SetBuffer(kernelIndex, "Result", buffer);
-            _shader.Dispatch(kernelIndex, num, 1, 1);
+        private void UpdatePosition()
+        {
+            int num = _targets.Length;
 
-            int[] data = new int[num];
-            buffer.GetData(data);
+            Vector3[] positions = _targets.Select(t => t.position).ToArray();
+            _positions.SetData(positions);
 
-            for (int i = 0; i < data.Length; i++)
+            _shader.SetBuffer(_kernelIndex, "Result", _results);
+            _shader.SetBuffer(_kernelIndex, "Positions", _positions);
+            _shader.Dispatch(_kernelIndex, num / 8 + 1, 1, 1);
+
+            Vector3[] data = new Vector3[num];
+            _results.GetData(data);
+
+            for (int i = 0; i < _targets.Length; i++)
             {
-                Debug.Log(data[i]);
+                _targets[i].position += data[i];
             }
+        }
 
-            buffer.Release();
+        private void Initialize()
+        {
+            _kernelIndex = _shader.FindKernel("CurlNoiseMain");
+
+            int num = _targets.Length;
+
+            _results = new ComputeBuffer(num, Marshal.SizeOf(typeof(Vector3)));
+            _positions = new ComputeBuffer(num, Marshal.SizeOf(typeof(Vector3)));
+
+
+            // ランダムな値を初期値として与える
+            _shader.SetFloat("randomX1", Random.value);
+            _shader.SetFloat("randomY1", Random.value);
+            _shader.SetFloat("randomZ1", Random.value);
+            _shader.SetFloat("randomX2", Random.value);
+            _shader.SetFloat("randomY2", Random.value);
+            _shader.SetFloat("randomZ2", Random.value);
         }
     }
 }

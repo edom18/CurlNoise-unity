@@ -1,6 +1,14 @@
 ﻿#pragma kernel CurlNoiseMain
 
-RWStructuredBuffer<int> Result;
+struct Vector3
+{
+    float x;
+    float y;
+    float z;
+};
+
+RWStructuredBuffer<Vector3> Result;
+RWStructuredBuffer<Vector3> Positions;
 
 float randomX1;
 float randomY1;
@@ -130,7 +138,7 @@ float3 Snoise(float3 vec)
     return float3(x, y, z);
 }
 
-float3 CurlNose(float3 p)
+float3 CurlNoise(float3 p)
 {
     const float e = 0.0009765625;
     const float e2 = 2.0 * e;
@@ -154,8 +162,12 @@ float3 CurlNose(float3 p)
     return normalize(float3(x, y, z) * invE2);
 }
 
-[numthreads(1,1,1)]
+[numthreads(8,1,1)]
 void CurlNoiseMain(uint3 id : SV_DispatchThreadID)
 {
-    Result[id.x] = id.x;
+    float3 input = float3(Positions[id.x].x, Positions[id.x].y, Positions[id.x].z);
+    float3 pos = CurlNoise(input);
+    Result[id.x].x = pos.x;
+    Result[id.x].y = pos.y;
+    Result[id.x].z = pos.z;
 }
