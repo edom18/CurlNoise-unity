@@ -14,6 +14,7 @@
             int id;
             bool active;
             float3 position;
+            float3 velocity;
             float3 color;
             float scale;
             float time;

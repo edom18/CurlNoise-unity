@@ -11,6 +11,7 @@ namespace CurlNoiseSample
         public int id;
         public bool active;
         public Vector3 position;
+        public Vector3 velocity;
         public Vector3 color;
         public float scale;
         public float time;
@@ -39,6 +40,9 @@ namespace CurlNoiseSample
 
         [SerializeField]
         ComputeShader _computeShader;
+
+        [SerializeField]
+        private float _speedFactor = 1.0f;
 
         [SerializeField]
         private Color _particleColor;
@@ -125,6 +129,7 @@ namespace CurlNoiseSample
 
         private void UpdatePosition()
         {
+            _computeShader.SetFloat("_SpeedFactor", _speedFactor);
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
             _computeShader.Dispatch(_kernelIndex, _maxParticleNum / 8, 1, 1);
@@ -190,12 +195,12 @@ namespace CurlNoiseSample
             _kernelIndex = _computeShader.FindKernel("CurlNoiseMain");
 
             // ランダムな値を初期値として与える
-            _computeShader.SetFloat("randomX1", Random.value);
-            _computeShader.SetFloat("randomY1", Random.value);
-            _computeShader.SetFloat("randomZ1", Random.value);
-            _computeShader.SetFloat("randomX2", Random.value);
-            _computeShader.SetFloat("randomY2", Random.value);
-            _computeShader.SetFloat("randomZ2", Random.value);
+            _computeShader.SetFloat("_RandomX1", Random.value);
+            _computeShader.SetFloat("_RandomY1", Random.value);
+            _computeShader.SetFloat("_RandomZ1", Random.value);
+            _computeShader.SetFloat("_RandomX2", Random.value);
+            _computeShader.SetFloat("_RandomY2", Random.value);
+            _computeShader.SetFloat("_RandomZ2", Random.value);
         }
     }
 }

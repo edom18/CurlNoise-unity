@@ -5,6 +5,7 @@ struct Particle
     int id;
     bool active;
     float3 position;
+    float3 velocity;
     float3 color;
     float scale;
     float time;
@@ -13,13 +14,14 @@ struct Particle
 
 RWStructuredBuffer<Particle> _Particles;
 
-float randomX1;
-float randomY1;
-float randomZ1;
-float randomX2;
-float randomY2;
-float randomZ2;
+float _RandomX1;
+float _RandomY1;
+float _RandomZ1;
+float _RandomX2;
+float _RandomY2;
+float _RandomZ2;
 
+float _SpeedFactor;
 float _DeltaTime;
 
 float3 Mod289(float3 x)
@@ -129,15 +131,15 @@ float3 Snoise(float3 vec)
     float x = SnoiseScalar(vec);
 
     float y = SnoiseScalar(float3(
-        vec.y + randomY1,
-        vec.z + randomZ1,
-        vec.x + randomX1
+        vec.y + _RandomY1,
+        vec.z + _RandomZ1,
+        vec.x + _RandomX1
     ));
 
     float z = SnoiseScalar(float3(
-        vec.z + randomZ2,
-        vec.x + randomX2,
-        vec.y + randomY2
+        vec.z + _RandomZ2,
+        vec.x + _RandomX2,
+        vec.y + _RandomY2
     ));
 
     return float3(x, y, z);
@@ -171,14 +173,17 @@ float3 CurlNoise(float3 p)
 void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
     float3 input = _Particles[id].position;
-    float3 pos = CurlNoise(input);
-    _Particles[id].position += pos;
+    float3 velocity = CurlNoise(input);
+    _Particles[id].velocity += velocity * _SpeedFactor;
+    _Particles[id].position += _Particles[id].velocity;
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
+
     if (scale < 0)
     {
         _Particles[id].active = false;
         scale = 0;
     }
+
     _Particles[id].scale = scale;
 }
