@@ -24,6 +24,46 @@ float _RandomZ2;
 float _SpeedFactor;
 float _DeltaTime;
 
+float3 _SphereCenter;
+float _SphereRadius;
+
+// ふたつのベクトルを合成する
+float3 BlendVectors(float3 potential, float3 distanceGradient, float alpha)
+{
+    // (N・V)Nを計算する
+    float dp = dot(potential, distanceGradient);
+
+    // ψ_constrained(X) = αψ(X) + (1 - α)N(N・ψ(X))
+    return alpha * potential + (1.0 - alpha) * dp * distanceGradient;
+}
+
+// 計算点から、障害物への距離を計算する
+float SampleDistance(float3 p)
+{
+    float3 u = p - _SphereCenter;
+    float d = length(u);
+    return d - _SphereRadius;
+}
+
+// 勾配（gradient）を計算する
+// 基本的な考えは偏微分が勾配ベクトルとなることを利用している？
+float3 ComputeGradient(float3 p)
+{
+    const float e = 0.01f;
+
+    // 偏微分するため、各軸の微小値を計算する
+    float3 dx = float3(e, 0, 0);
+    float3 dy = float3(0, e, 0);
+    float3 dz = float3(0, 0, e);
+
+    float d = SampleDistance(p);
+    float dfdx = SampleDistance(p + dx) - d;
+    float dfdy = SampleDistance(p + dy) - d;
+    float dfdz = SampleDistance(p + dz) - d;
+
+    return normalize(float3(dfdx, dfdy, dfdz));
+}
+
 float3 Mod289(float3 x)
 {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
