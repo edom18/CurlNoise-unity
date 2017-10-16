@@ -45,6 +45,9 @@ namespace CurlNoiseSample
         private float _speedFactor = 1.0f;
 
         [SerializeField]
+        private Transform _sphere;
+
+        [SerializeField]
         private Color _particleColor;
 
         private Mesh _combinedMesh;
@@ -129,6 +132,9 @@ namespace CurlNoiseSample
 
         private void UpdatePosition()
         {
+            Vector3 p = _sphere.transform.position;
+            _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
+            _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x);
             _computeShader.SetFloat("_SpeedFactor", _speedFactor);
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);

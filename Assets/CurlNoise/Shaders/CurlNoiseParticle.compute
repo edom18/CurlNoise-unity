@@ -27,6 +27,23 @@ float _DeltaTime;
 float3 _SphereCenter;
 float _SphereRadius;
 
+float Ramp(float r)
+{
+    if (r >= 1.0)
+    {
+        return 1.0;
+    }
+    else if (r <= -1.0)
+    {
+        return -1.0;
+    }
+    else
+    {
+        // ((15.0 / 8.0) * r) - ((10.0 / 8.0) * (r * r * r)) + ((3.0 / 8.0) * (r * r * r * r * r))
+        return (1.875 * r) - (1.25 * (r * r * r)) + (0.375 * (r * r * r * r * r));
+    }
+}
+
 // ふたつのベクトルを合成する
 float3 BlendVectors(float3 potential, float3 distanceGradient, float alpha)
 {
@@ -212,9 +229,35 @@ float3 CurlNoise(float3 p)
 [numthreads(8,1,1)]
 void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
+    //float3 p = _Particles[id].position;
+    //float3 v = CurlNoise(p);
+    //float3 mid = p + (0.5 * _DeltaTime * v);
+    //v = _DeltaTime * CurlNoise(mid);
+    //_Particles[id].velocity += v * _SpeedFactor;
+    //_Particles[id].position += _Particles[id].velocity;
+    //_Particles[id].time += _DeltaTime;
+    //float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
+
+    //if (scale < 0)
+    //{
+    //    _Particles[id].active = false;
+    //    scale = 0;
+    //}
+
+    //_Particles[id].scale = scale;
+
     float3 input = _Particles[id].position;
+
+    float3 gradient = ComputeGradient(input);
+    float obstacleDistance = SampleDistance(input);
+
+    float d = Ramp(abs(obstacleDistance));
+
     float3 velocity = CurlNoise(input);
-    _Particles[id].velocity += velocity * _SpeedFactor;
+
+    float3 vec = BlendVectors(velocity, gradient, d);
+
+    _Particles[id].velocity += vec * _SpeedFactor;
     _Particles[id].position += _Particles[id].velocity;
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
