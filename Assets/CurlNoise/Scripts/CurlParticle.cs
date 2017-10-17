@@ -50,6 +50,9 @@ namespace CurlNoiseSample
         [SerializeField]
         private Color _particleColor;
 
+        [SerializeField]
+        private float _noiseScale = 1.0f;
+
         private Mesh _combinedMesh;
         private List<Material> _materials = new List<Material>();
 
@@ -133,6 +136,7 @@ namespace CurlNoiseSample
         private void UpdatePosition()
         {
             Vector3 p = _sphere.transform.position;
+            _computeShader.SetFloat("_NoiseScale", _noiseScale);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x);
             _computeShader.SetFloat("_SpeedFactor", _speedFactor);
@@ -155,9 +159,9 @@ namespace CurlNoiseSample
 
             for (int i = 0; i < _maxParticleNum; i++)
             {
-                float x = Random.Range(-50f, 50f);
-                float y = Random.Range(-50f, 50f);
-                float z = Random.Range(-50f, 50f);
+                float x = Random.Range(-5f, 5f);
+                float y = Random.Range(-5f, 5f);
+                float z = Random.Range(-5f, 5f);
 
                 float r = _particleColor.r;
                 float g = _particleColor.g;

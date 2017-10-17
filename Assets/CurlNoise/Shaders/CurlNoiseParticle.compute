@@ -26,7 +26,12 @@ float _DeltaTime;
 
 float3 _SphereCenter;
 float _SphereRadius;
+float _NoiseScale;
 
+float3 ComputeGradient(float3 p);
+float3 Snoise(float3 vec);
+
+// Ramp関数
 float Ramp(float r)
 {
     if (r >= 1.0)
@@ -60,6 +65,24 @@ float SampleDistance(float3 p)
     float3 u = p - _SphereCenter;
     float d = length(u);
     return d - _SphereRadius;
+}
+
+float3 SamplePotential(float3 p)
+{
+    float3 psi = float3(0, 0, 0);
+
+    float3 gradient = ComputeGradient(p);
+    float obstacleDistance = SampleDistance(p);
+
+    float d = abs(Ramp(obstacleDistance / _NoiseScale));
+
+    float3 noise = Snoise(p / _NoiseScale);
+
+    float3 velocity = BlendVectors(noise, gradient, d);
+
+    psi += velocity;
+
+    return psi;
 }
 
 // 勾配（gradient）を計算する
@@ -183,20 +206,24 @@ float SnoiseScalar(float3 v)
     ));
 }
 
+// シンプレクスノイズ関数
+// 3Dとして3要素を計算。
+// それぞれのノイズは明らかに違う（極端に大きなオフセット）を持たせた値とする
+// Reference: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph2007-curlnoise.pdf
 float3 Snoise(float3 vec)
 {
     float x = SnoiseScalar(vec);
 
     float y = SnoiseScalar(float3(
-        vec.y + _RandomY1,
-        vec.z + _RandomZ1,
-        vec.x + _RandomX1
+        vec.y + 31.416,
+        vec.z - 47.853,
+        vec.x + 12.793
     ));
 
     float z = SnoiseScalar(float3(
-        vec.z + _RandomZ2,
-        vec.x + _RandomX2,
-        vec.y + _RandomY2
+        vec.z - 233.145,
+        vec.x - 113.408,
+        vec.y - 185.31
     ));
 
     return float3(x, y, z);
@@ -212,12 +239,12 @@ float3 CurlNoise(float3 p)
     float3 dy = float3(0.0,   e, 0.0);
     float3 dz = float3(0.0, 0.0,   e);
 
-    float3 p_x0 = Snoise(p - dx);
-    float3 p_x1 = Snoise(p + dx);
-    float3 p_y0 = Snoise(p - dy);
-    float3 p_y1 = Snoise(p + dy);
-    float3 p_z0 = Snoise(p - dz);
-    float3 p_z1 = Snoise(p + dz);
+    float3 p_x0 = SamplePotential(p - dx);
+    float3 p_x1 = SamplePotential(p + dx);
+    float3 p_y0 = SamplePotential(p - dy);
+    float3 p_y1 = SamplePotential(p + dy);
+    float3 p_z0 = SamplePotential(p - dz);
+    float3 p_z1 = SamplePotential(p + dz);
 
     float x = (p_y1.z - p_y0.z) - (p_z1.y + p_z0.y);
     float y = (p_z1.x - p_z0.x) - (p_x1.z + p_x0.z);
@@ -229,35 +256,11 @@ float3 CurlNoise(float3 p)
 [numthreads(8,1,1)]
 void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
-    //float3 p = _Particles[id].position;
-    //float3 v = CurlNoise(p);
-    //float3 mid = p + (0.5 * _DeltaTime * v);
-    //v = _DeltaTime * CurlNoise(mid);
-    //_Particles[id].velocity += v * _SpeedFactor;
-    //_Particles[id].position += _Particles[id].velocity;
-    //_Particles[id].time += _DeltaTime;
-    //float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-
-    //if (scale < 0)
-    //{
-    //    _Particles[id].active = false;
-    //    scale = 0;
-    //}
-
-    //_Particles[id].scale = scale;
-
     float3 input = _Particles[id].position;
-
-    float3 gradient = ComputeGradient(input);
-    float obstacleDistance = SampleDistance(input);
-
-    float d = Ramp(abs(obstacleDistance));
 
     float3 velocity = CurlNoise(input);
 
-    float3 vec = BlendVectors(velocity, gradient, d);
-
-    _Particles[id].velocity += vec * _SpeedFactor;
+    _Particles[id].velocity += velocity * _SpeedFactor;
     _Particles[id].position += _Particles[id].velocity;
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
