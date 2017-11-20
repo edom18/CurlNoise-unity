@@ -85,9 +85,9 @@ public class PerlinNoise : MonoBehaviour
 
     private float Noise(float x, float y = 0, float z = 0)
     {
-        int X = (int)Mathf.Floor(x)) & 255;
-        int Y = (int)Mathf.Floor(y)) & 255;
-        int Z = (int)Mathf.Floor(z)) & 255;
+        int X = (int)Mathf.Floor(x) & 255;
+        int Y = (int)Mathf.Floor(y) & 255;
+        int Z = (int)Mathf.Floor(z) & 255;
 
         x -= Mathf.Floor(x);
         y -= Mathf.Floor(y);
@@ -104,15 +104,15 @@ public class PerlinNoise : MonoBehaviour
         A = p[X + 0] + Y; AA = p[A] + Z; AB = p[A + 1] + Z;
         B = p[X + 1] + Y; BA = p[B] + Z; BB = p[B + 1] + Z;
 
-        return return Lerp(w, Lerp(v, Lerp(u, Grad(p[AA + 0], x + 0, y + 0, z + 0),
-                                              Grad(p[BA + 0], x - 1, y + 0, z + 0)),
-                                      Lerp(u, Grad(p[AB + 0], x + 0, y - 1, z + 0),
-                                              Grad(p[BB + 0], x - 1, y - 1, z + 0))),
-                              Lerp(v, Lerp(u, Grad(p[AA + 1], x + 0, y + 0, z - 1),
-                                              Grad(p[BA + 1], x - 1, y + 0, z - 1)),
-                                      Lerp(u, Grad(p[AB + 1], x + 0, y - 1, z - 1),
-                                              Grad(p[BB + 1], x - 1, y - 1, z - 1))))
-    }
+        return Lerp(w, Lerp(v, Lerp(u, Grad(p[AA + 0], x + 0, y + 0, z + 0),
+                                       Grad(p[BA + 0], x - 1, y + 0, z + 0)),
+                               Lerp(u, Grad(p[AB + 0], x + 0, y - 1, z + 0),
+                                       Grad(p[BB + 0], x - 1, y - 1, z + 0))),
+                       Lerp(v, Lerp(u, Grad(p[AA + 1], x + 0, y + 0, z - 1),
+                                       Grad(p[BA + 1], x - 1, y + 0, z - 1)),
+                               Lerp(u, Grad(p[AB + 1], x + 0, y - 1, z - 1),
+                                       Grad(p[BB + 1], x - 1, y - 1, z - 1))));
+	}
 
     private float OctaveNoise1(float x, int octaves)
     {
@@ -126,7 +126,7 @@ public class PerlinNoise : MonoBehaviour
             amp *= 0.5f;
         }
 
-        return result 
+		return result;
     }
 
     private float OctaveNoise2(float x, float y, int octaves)
@@ -142,12 +142,12 @@ public class PerlinNoise : MonoBehaviour
             amp *= 0.5f;
         }
 
-        return result
+		return result;
     }
 
-     private float OctaveNoise3: (x, y, z, octaves)
+     private float OctaveNoise3(float x, float y, float z, int octaves)
      {
-        float float result = 0;
+        float result = 0;
         float amp = 1.0f;
 
         for (int i = 0; i < octaves; i++)
@@ -159,7 +159,7 @@ public class PerlinNoise : MonoBehaviour
             amp *= 0.5f;
         }
 
-        return result
+		return result;
      }
 
     private float Fade(float t)
