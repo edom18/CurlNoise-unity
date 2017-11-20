@@ -47,26 +47,14 @@ public class Xorshift
     }
 }
 
-public class PerlinNoise : MonoBehaviour
+public class PerlinNoise
 {
     private Xorshift _xorshift;
     private int[] _p;
 
-    private void Update()
+	public PerlinNoise(uint seed)
     {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            if (_xorshift == null)
-            {
-                _xorshift = new Xorshift((uint)System.DateTime.Now.GetUnixTime());
-            }
-            Debug.Log(_xorshift.Random());
-        }
-    }
-
-    private void Start()
-    {
-        _xorshift = new Xorshift((uint)System.DateTime.Now.GetUnixTime());
+        _xorshift = new Xorshift(seed);
 
         int[] p = new int[256];
         for (int i = 0; i < p.Length; i++)
@@ -114,7 +102,7 @@ public class PerlinNoise : MonoBehaviour
                                        Grad(p[BB + 1], x - 1, y - 1, z - 1))));
 	}
 
-    private float OctaveNoise1(float x, int octaves)
+    public float OctaveNoise(float x, int octaves)
     {
         float result = 0;
         float amp = 1.0f;
@@ -129,7 +117,7 @@ public class PerlinNoise : MonoBehaviour
 		return result;
     }
 
-    private float OctaveNoise2(float x, float y, int octaves)
+    public float OctaveNoise(float x, float y, int octaves)
     {
         float result = 0;
         float amp = 1.0f;
@@ -145,7 +133,7 @@ public class PerlinNoise : MonoBehaviour
 		return result;
     }
 
-     private float OctaveNoise3(float x, float y, float z, int octaves)
+     public float OctaveNoise(float x, float y, float z, int octaves)
      {
         float result = 0;
         float amp = 1.0f;
