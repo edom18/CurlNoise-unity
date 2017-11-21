@@ -77,6 +77,12 @@ namespace CurlNoiseSample
             UpdatePosition();
         }
 
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScale);
+        }
+
         /// <summary>
         /// 指定した数分、マージしたメッシュを生成する
         /// </summary>

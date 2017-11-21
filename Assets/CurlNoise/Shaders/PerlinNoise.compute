@@ -1,0 +1,96 @@
+﻿#pragma kernel PerlinNoiseMain
+
+RWTexture2D<float4> Result;
+StructuredBuffer<int> _P;
+
+inline float Noise(float2 vec);
+float Noise(float3 vec);
+
+float Fade(float t)
+{
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+float Lerp(float t, float a, float b)
+{
+    return a + t * (b - a);
+}
+
+float Grad(int hash, float x, float y, float z)
+{
+    int h = hash & 15;
+    float u = (h < 8) ? x : y;
+    float v = (h < 4) ? y : (h == 12 || h == 14) ? x : z;
+    return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
+}
+
+float PerlinNoise(float2 vec, int octaves)
+{
+    float result = 0;
+    float amp = 1.0;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        result += Noise(vec) * amp;
+        vec *= 2.0;
+        amp *= 0.5;
+    }
+
+    return result;
+}
+
+float PerlinNoise(float3 vec, int octaves)
+{
+    float result = 0;
+    float amp = 1.0;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        result += Noise(vec) * amp;
+        vec *= 2.0;
+        amp *= 0.5;
+    }
+
+    return result;
+}
+
+inline float Noise(float2 vec)
+{
+    return Noise(float3(vec, 0));
+}
+
+float Noise(float3 vec)
+{
+    int X = (int)floor(vec.x) & 255;
+    int Y = (int)floor(vec.y) & 255;
+    int Z = (int)floor(vec.z) & 255;
+
+    vec.x -= floor(vec.x);
+    vec.y -= floor(vec.y);
+    vec.z -= floor(vec.z);
+
+    float u = Fade(vec.x);
+    float v = Fade(vec.y);
+    float w = Fade(vec.z);
+
+    int A, AA, AB, B, BA, BB;
+
+    A = _P[X + 0] + Y; AA = _P[A] + Z; AB = _P[A + 1] + Z;
+    B = _P[X + 1] + Y; BA = _P[B] + Z; BB = _P[B + 1] + Z;
+
+    return Lerp(w, Lerp(v, Lerp(u, Grad(_P[AA + 0], vec.x + 0, vec.y + 0, vec.z + 0),
+                                   Grad(_P[BA + 0], vec.x - 1, vec.y + 0, vec.z + 0)),
+                           Lerp(u, Grad(_P[AB + 0], vec.x + 0, vec.y - 1, vec.z + 0),
+                                   Grad(_P[BB + 0], vec.x - 1, vec.y - 1, vec.z + 0))),
+                   Lerp(v, Lerp(u, Grad(_P[AA + 1], vec.x + 0, vec.y + 0, vec.z - 1),
+                                   Grad(_P[BA + 1], vec.x - 1, vec.y + 0, vec.z - 1)),
+                           Lerp(u, Grad(_P[AB + 1], vec.x + 0, vec.y - 1, vec.z - 1),
+                                   Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
+}
+
+
+[numthreads(1,1,1)]
+void PerlinNoiseMain (uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(id.x & id.y, (id.x & 15) / 15.0, (id.y & 15) / 15.0, 0.0);
+}

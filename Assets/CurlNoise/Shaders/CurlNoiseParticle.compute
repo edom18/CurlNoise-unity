@@ -1,5 +1,7 @@
 ﻿#pragma kernel CurlNoiseMain
 
+#include "PerlinNoise.cginc"
+
 struct Particle
 {
     int id;
