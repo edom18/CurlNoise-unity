@@ -53,10 +53,23 @@ namespace CurlNoiseSample
         [SerializeField]
         private float _noiseScale = 1.0f;
 
+        [SerializeField]
+        private int _seed = 100;
+
+        [SerializeField]
+        private int _octaves = 5;
+
+        [SerializeField]
+        private float _frequency = 5.0f;
+
+        private int[] _p;
+        private ComputeBuffer _buff;
         private Mesh _combinedMesh;
         private List<Material> _materials = new List<Material>();
 
         private ComputeBuffer _particles;
+
+        private Xorshift _xorshift;
 
         private int _kernelIndex;
         private int _particleNumPerMesh;
@@ -65,6 +78,7 @@ namespace CurlNoiseSample
         private void OnDisable()
         {
             _particles.Release();
+            _buff.Release();
         }
 
         private void Start()
@@ -141,6 +155,23 @@ namespace CurlNoiseSample
 
         private void UpdatePosition()
         {
+            float frequency = Mathf.Clamp(_frequency, 0.1f, 64.0f);
+            int octaves = Mathf.Clamp(_octaves, 1, 16);
+
+            float fx = _noiseScale / frequency;
+            float fy = _noiseScale / frequency;
+
+            if (_buff == null)
+            {
+                _buff = new ComputeBuffer(512, sizeof(int));
+                _buff.SetData(_p);
+            }
+
+            _computeShader.SetInt("_Octaves", octaves);
+            _computeShader.SetFloat("_Fx", fx);
+            _computeShader.SetFloat("_Fy", fy);
+            _computeShader.SetBuffer(_kernelIndex, "_P", _buff);
+
             Vector3 p = _sphere.transform.position;
             _computeShader.SetFloat("_NoiseScale", _noiseScale);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
@@ -157,6 +188,23 @@ namespace CurlNoiseSample
                 material.SetBuffer("_Particles", _particles);
                 Graphics.DrawMesh(_combinedMesh, transform.position, transform.rotation, material, 0);
             }
+        }
+
+        private int[] CreateGrid()
+        {
+            int[] p = new int[256];
+            for (int i = 0; i < p.Length; i++)
+            {
+                p[i] = (int)Mathf.Floor(_xorshift.Random() * 256);
+            }
+
+            int[] p2 = new int[512];
+            for (int i = 0; i < p2.Length; i++)
+            {
+                p2[i] = p[i & 255];
+            }
+
+            return p2;
         }
 
         private Particle[] GenerateParticles()
@@ -191,6 +239,10 @@ namespace CurlNoiseSample
 
         private void Initialize()
         {
+            int seed = Mathf.Clamp(_seed, 0, 2 << 30 - 1);
+            _xorshift = new Xorshift((uint)seed);
+            _p = CreateGrid();
+
             _particleNumPerMesh = MAX_VERTEX_NUM / _mesh.vertexCount;
             _meshNum = (int)Mathf.Ceil((float)_maxParticleNum / _particleNumPerMesh);
 
