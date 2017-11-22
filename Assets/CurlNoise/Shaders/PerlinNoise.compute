@@ -3,6 +3,10 @@
 RWTexture2D<float4> Result;
 StructuredBuffer<int> _P;
 
+int _Octaves;
+float _Fx;
+float _Fy;
+
 inline float Noise(float2 vec);
 float Noise(float3 vec);
 
@@ -24,12 +28,12 @@ float Grad(int hash, float x, float y, float z)
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
-float PerlinNoise(float2 vec, int octaves)
+float PerlinNoise(float2 vec)
 {
     float result = 0;
     float amp = 1.0;
 
-    for (int i = 0; i < octaves; i++)
+    for (int i = 0; i < _Octaves; i++)
     {
         result += Noise(vec) * amp;
         vec *= 2.0;
@@ -39,12 +43,12 @@ float PerlinNoise(float2 vec, int octaves)
     return result;
 }
 
-float PerlinNoise(float3 vec, int octaves)
+float PerlinNoise(float3 vec)
 {
     float result = 0;
     float amp = 1.0;
 
-    for (int i = 0; i < octaves; i++)
+    for (int i = 0; i < _Octaves; i++)
     {
         result += Noise(vec) * amp;
         vec *= 2.0;
@@ -89,8 +93,12 @@ float Noise(float3 vec)
 }
 
 
-[numthreads(1,1,1)]
+[numthreads(8,8,1)]
 void PerlinNoiseMain (uint3 id : SV_DispatchThreadID)
 {
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15) / 15.0, (id.y & 15) / 15.0, 0.0);
+    float2 xy = float2(id.x / _Fx, id.y / _Fy);
+    float n = PerlinNoise(xy);
+    float c = clamp(218.0 * (0.5 + n * 0.5), 0, 255.0) / 255.0;
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15) / 15.0, (id.y & 15) / 15.0, 1.0);
+    Result[id.xy] = c;
 }
