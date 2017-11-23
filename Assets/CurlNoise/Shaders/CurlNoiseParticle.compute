@@ -60,13 +60,13 @@ float Ramp(float r)
 }
 
 // ふたつのベクトルを合成する
-float3 BlendVectors(float3 potential, float3 distanceGradient, float alpha)
+float3 BlendVectors(float3 potential, float3 normal, float alpha)
 {
-    // (N・V)Nを計算する
-    float dp = dot(potential, distanceGradient);
+    // (N・ψ(X))を計算する
+    float dp = dot(potential, normal);
 
     // ψ_constrained(X) = αψ(X) + (1 - α)N(N・ψ(X))
-    return alpha * potential + (1.0 - alpha) * dp * distanceGradient;
+    return alpha * potential + (1.0 - alpha) * dp * normal;
 }
 
 // 計算点から、障害物への距離を計算する
@@ -365,7 +365,7 @@ float3 CurlNoise(float3 p)
     float y = (p_z1.x - p_z0.x) - (p_x1.z + p_x0.z);
     float z = (p_x1.y - p_x0.y) - (p_y1.x + p_y0.x);
 
-    return normalize(float3(x, y, z) * invE2);
+    return float3(x, y, z) * invE2;
 }
 
 [numthreads(8,1,1)]
@@ -375,10 +375,10 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 
     float3 velocity = CurlNoise(input);
 
-    _Particles[id].velocity += velocity * _SpeedFactor;
-    _Particles[id].position += _Particles[id].velocity;
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
+    _Particles[id].velocity += velocity * _SpeedFactor * scale;
+    _Particles[id].position += _Particles[id].velocity * _DeltaTime;
 
     if (scale < 0)
     {
