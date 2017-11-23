@@ -77,24 +77,39 @@ float SampleDistance(float3 p)
     return d - _SphereRadius;
 }
 
+//float3 SamplePotential(float3 p)
+//{
+//    float3 psi = float3(0, 0, 0);
+//
+//    float3 gradient = ComputeGradient(p);
+//    float obstacleDistance = SampleDistance(p);
+//
+//    float d = abs(Ramp(obstacleDistance / _NoiseScale));
+//
+//    //float3 noise = Snoise(p / _NoiseScale);
+//    float3 noise = Pnoise(p / _NoiseScale);
+//
+//    float3 velocity = BlendVectors(noise, gradient, d);
+//
+//    psi += velocity;
+//
+//    return psi;
+//}
+
 float3 SamplePotential(float3 p)
 {
-    float3 psi = float3(0, 0, 0);
+    float3 newP = p / _NoiseScale;
 
-    float3 gradient = ComputeGradient(p);
-    float obstacleDistance = SampleDistance(p);
+    float3 gradient = ComputeGradient(newP);
+    float obstacleDistance = SampleDistance(newP);
 
     float d = abs(Ramp(obstacleDistance / _NoiseScale));
 
-    //float3 noise = Snoise(p / _NoiseScale);
-    float3 noise = Pnoise(p / _NoiseScale);
+    float3 noise = Pnoise(newP);
 
-    float3 velocity = BlendVectors(noise, gradient, d);
-
-    psi += velocity;
-
-    return psi;
+    return BlendVectors(noise, gradient, d);
 }
+
 
 // 勾配（gradient）を計算する
 // 基本的な考えは偏微分が勾配ベクトルとなることを利用している？
@@ -377,7 +392,7 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    _Particles[id].velocity += velocity * _SpeedFactor * scale;
+    _Particles[id].velocity += velocity * _SpeedFactor;// *scale;
     _Particles[id].position += _Particles[id].velocity * _DeltaTime;
 
     if (scale < 0)
