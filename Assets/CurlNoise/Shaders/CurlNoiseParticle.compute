@@ -71,34 +71,17 @@ float SampleDistance(float3 p)
     return d - _SphereRadius;
 }
 
-//float3 SamplePotential(float3 p)
-//{
-//    float3 psi = float3(0, 0, 0);
-//
-//    float3 gradient = ComputeGradient(p);
-//    float obstacleDistance = SampleDistance(p);
-//
-//    float d = abs(Ramp(obstacleDistance / _NoiseScale));
-//
-//    //float3 noise = Snoise(p / _NoiseScale);
-//    float3 noise = Pnoise(p / _NoiseScale);
-//
-//    float3 velocity = BlendVectors(noise, gradient, d);
-//
-//    psi += velocity;
-//
-//    return psi;
-//}
-
+// α = ramp(d(x)/d0)
+// ψ_constrainted(x) = αψ(x) + (1 - α)n(n・ψ(x))
 float3 SamplePotential(float3 pos)
 {
-    float3 scaledPos = pos / _NoiseScale;
-
-    float3 normal = ComputeGradient(scaledPos);
-    float obstacleDistance = SampleDistance(scaledPos);
+    float3 normal = ComputeGradient(pos);
+    float obstacleDistance = SampleDistance(pos);
 
     float alpha = abs(Ramp(obstacleDistance / _NoiseScale));
 
+    float3 scaledPos = pos / _NoiseScale;
+    //float3 psi = Snoise(scaledPos);
     float3 psi = Pnoise(scaledPos);
 
     return BlendVectors(psi, normal, alpha);
@@ -310,6 +293,9 @@ float Noise(float3 vec)
                                    Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
 }
 
+// パーリンノイズによるベクトル場
+// 3Dとして3要素を計算。
+// それぞれのノイズは明らかに違う（極端に大きなオフセット）を持たせた値とする
 float3 Pnoise(float3 vec)
 {
     float x = PerlinNoise(vec);
