@@ -62,6 +62,10 @@ namespace CurlNoiseSample
         [SerializeField]
         private float _frequency = 5.0f;
 
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float _curlNoiseIntencity = 1f;
+
         private int[] _p;
         private ComputeBuffer _buff;
         private Mesh _combinedMesh;
@@ -174,8 +178,9 @@ namespace CurlNoiseSample
 
             Vector3 p = _sphere.transform.position;
             _computeShader.SetFloat("_NoiseScale", _noiseScale);
+            _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
-            _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x);
+            _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
             _computeShader.SetFloat("_SpeedFactor", _speedFactor);
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
@@ -261,14 +266,6 @@ namespace CurlNoiseSample
             _particles.SetData(particles);
 
             _kernelIndex = _computeShader.FindKernel("CurlNoiseMain");
-
-            // ランダムな値を初期値として与える
-            _computeShader.SetFloat("_RandomX1", Random.value);
-            _computeShader.SetFloat("_RandomY1", Random.value);
-            _computeShader.SetFloat("_RandomZ1", Random.value);
-            _computeShader.SetFloat("_RandomX2", Random.value);
-            _computeShader.SetFloat("_RandomY2", Random.value);
-            _computeShader.SetFloat("_RandomZ2", Random.value);
         }
     }
 }

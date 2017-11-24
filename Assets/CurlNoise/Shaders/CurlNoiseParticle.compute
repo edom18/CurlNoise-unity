@@ -23,19 +23,13 @@ struct Particle
 
 RWStructuredBuffer<Particle> _Particles;
 
-float _RandomX1;
-float _RandomY1;
-float _RandomZ1;
-float _RandomX2;
-float _RandomY2;
-float _RandomZ2;
-
 float _SpeedFactor;
 float _DeltaTime;
 
 float3 _SphereCenter;
 float _SphereRadius;
 float _NoiseScale;
+float _CurlNoiseIntencity;
 
 float3 ComputeGradient(float3 p);
 float3 Snoise(float3 vec);
@@ -96,31 +90,31 @@ float SampleDistance(float3 p)
 //    return psi;
 //}
 
-float3 SamplePotential(float3 p)
+float3 SamplePotential(float3 pos)
 {
-    float3 newP = p / _NoiseScale;
+    float3 scaledPos = pos / _NoiseScale;
 
-    float3 gradient = ComputeGradient(newP);
-    float obstacleDistance = SampleDistance(newP);
+    float3 normal = ComputeGradient(scaledPos);
+    float obstacleDistance = SampleDistance(scaledPos);
 
-    float d = abs(Ramp(obstacleDistance / _NoiseScale));
+    float alpha = abs(Ramp(obstacleDistance / _NoiseScale));
 
-    float3 noise = Pnoise(newP);
+    float3 psi = Pnoise(scaledPos);
 
-    return BlendVectors(noise, gradient, d);
+    return BlendVectors(psi, normal, alpha);
 }
 
 
 // 勾配（gradient）を計算する
-// 基本的な考えは偏微分が勾配ベクトルとなることを利用している？
+// 基本的な考えは偏微分が法線ベクトルとなることを利用している？
 float3 ComputeGradient(float3 p)
 {
     const float e = 0.01f;
 
     // 偏微分するため、各軸の微小値を計算する
-    float3 dx = float3(e, 0, 0);
-    float3 dy = float3(0, e, 0);
-    float3 dz = float3(0, 0, e);
+    const float3 dx = float3(e, 0, 0);
+    const float3 dy = float3(0, e, 0);
+    const float3 dz = float3(0, 0, e);
 
     float d = SampleDistance(p);
     float dfdx = SampleDistance(p + dx) - d;
@@ -388,11 +382,11 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
     float3 input = _Particles[id].position;
 
-    float3 velocity = CurlNoise(input);
+    float3 velocity = CurlNoise(input) * _CurlNoiseIntencity;
 
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    _Particles[id].velocity += velocity * _SpeedFactor;// *scale;
+    _Particles[id].velocity += velocity * _SpeedFactor;
     _Particles[id].position += _Particles[id].velocity * _DeltaTime;
 
     if (scale < 0)
