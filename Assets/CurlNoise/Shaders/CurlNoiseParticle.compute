@@ -39,7 +39,16 @@ float _CurlNoiseIntencity;
 float _PlumeBase;
 float _PlumeHeight;
 float _RingRadius;
+float _RingMagnitude;
+float _PlumeCeiling;
+float _RingFalloff;
+float _RingSpeed;
+float _RingPerSecond;
 
+inline float sqr(float x)
+{
+    return x * x;
+}
 
 // ふたつのベクトルを合成する
 float3 BlendVectors(float3 potential, float3 normal, float alpha)
@@ -81,9 +90,24 @@ float3 SamplePotential(float3 pos)
 
     //float3 risingForce = float3(0, 0, 0) - pos;
     // rising force = float3(0) - pos
-    float3 rpsi = float3(pos.z, 0, -pos.x);
+    //float3 risingForce = float3(pos.z, 0, -pos.x);
+    float3 risingForce = float3(0, 0, -0.5);
+
+    //const float PlumeCeiling = 3.0;
+    //float ringY = PlumeCeiling;
     float alpha = abs(Ramp(distance / _RingRadius));
-    psi += BlendVectors(rpsi, normal, alpha);
+    psi += BlendVectors(risingForce, normal, alpha);
+
+    //[unroll]
+    //while (ringY > -3.0)
+    //{
+    //    float ry = pos.y - ringY;
+    //    float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
+    //    float rmag = _RingMagnitude / (sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff);
+    //    float3 rpsi = rmag * risingForce;
+    //    psi += BlendVectors(rpsi, normal, alpha);
+    //    ringY -= _RingSpeed / _RingPerSecond;
+    //}
 
     return psi;
 }
@@ -181,7 +205,6 @@ float3 Pnoise(float3 vec)
 
 float3 CurlNoise(float3 p)
 {
-    //const float e = 1e-4;
     const float e = 0.0009765625;
     const float e2 = 2.0 * e;
     const float invE2 = 1.0 / e2;

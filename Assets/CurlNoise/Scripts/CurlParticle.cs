@@ -64,13 +64,34 @@ namespace CurlNoiseSample
         private Color _particleColor;
 
         [SerializeField]
-        private float[] _noiseScales = new[] { 100f, 10f, 5f, };
+        private float[] _noiseScales = new[] { 0.4f, 0.23f, 0.11f, };
 
         [SerializeField]
         private float[] _noiseGain = new[] { 1.0f, 0.5f, 0.25f, };
 
         [SerializeField]
-        private float _ringRadius = 0.01f;
+        private float _plumeBase = -3f;
+
+        [SerializeField]
+        private float _plumeHeight = 8f;
+
+        [SerializeField]
+        private float _ringRadius = 1.25f;
+
+        [SerializeField]
+        private float _ringMagnitude = 10.0f;
+
+        [SerializeField]
+        private float _plumeCeiling = 3.0f;
+
+        [SerializeField]
+        private float _ringFalloff = 0.7f;
+
+        [SerializeField]
+        private float _ringSpeed = 0.3f;
+
+        [SerializeField]
+        private float _ringPerSecond = 0.125f;
 
         [SerializeField]
         private int _seed = 100;
@@ -208,9 +229,15 @@ namespace CurlNoiseSample
             Vector3 p = _sphere.transform.position;
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloats("_NoiseGain", _noiseGain);
-            _computeShader.SetFloat("_PlumeBase", -_noiseScales[0] * 0.5f);
-            _computeShader.SetFloat("_PlumeHeight", _noiseScales[0]);
+            _computeShader.SetFloat("_PlumeBase", _plumeBase);
+            _computeShader.SetFloat("_PlumeHeight", _plumeHeight);
             _computeShader.SetFloat("_RingRadius", _ringRadius);
+
+            _computeShader.SetFloat("_RingMagnitude", _ringMagnitude);
+            _computeShader.SetFloat("_PlumeCeiling", _plumeCeiling);
+            _computeShader.SetFloat("_RingFalloff", _ringFalloff);
+            _computeShader.SetFloat("_RingSpeed", _ringSpeed);
+            _computeShader.SetFloat("_RingPerSecond", _ringPerSecond);
             _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
