@@ -21,9 +21,7 @@
             float lifeTime;
         };
 
-#ifdef SHADER_API_D3D11
         StructuredBuffer<Particle> _Particles;
-#endif
 
         int _IdOffset;
 
@@ -49,11 +47,9 @@
 
         v2f vert(appdata v)
         {
-#ifdef SHADER_API_D3D11
             Particle p = _Particles[getId(v.uv1)];
             v.vertex.xyz *= p.scale;
             v.vertex.xyz += p.position;
-#endif
 
             v2f o;
             o.uv1 = v.uv1;
