@@ -216,8 +216,8 @@ float3 Pnoise(float3 vec)
 
 float3 CurlNoise(float3 p)
 {
-    //const float e = 1e-4;
-    const float e = 0.0009765625;
+    const float e = 1e-4;
+    //const float e = 0.0009765625;
     const float e2 = 2.0 * e;
     const float invE2 = 1.0 / e2;
 
@@ -248,7 +248,7 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    _Particles[id].velocity += velocity * _SpeedFactor;
+    _Particles[id].velocity = velocity * _SpeedFactor;
     _Particles[id].position += _Particles[id].velocity * _DeltaTime;
 
     if (scale < 0)
