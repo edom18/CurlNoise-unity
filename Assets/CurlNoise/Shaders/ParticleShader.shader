@@ -17,6 +17,7 @@
             float3 velocity;
             float3 color;
             float scale;
+            float baseScale;
             float time;
             float lifeTime;
         };
@@ -48,7 +49,7 @@
         v2f vert(appdata v)
         {
             Particle p = _Particles[getId(v.uv1)];
-            v.vertex.xyz *= p.scale;
+            v.vertex.xyz *= p.scale * p.baseScale;
             v.vertex.xyz += p.position;
 
             v2f o;

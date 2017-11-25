@@ -14,6 +14,7 @@ namespace CurlNoiseSample
         public Vector3 velocity;
         public Vector3 color;
         public float scale;
+        public float baseScale;
         public float time;
         public float liefTime;
     }
@@ -26,13 +27,20 @@ namespace CurlNoiseSample
         #region ### パーティクル設定 ###
         [Header("==== パーティクル設定 ====")]
         [SerializeField]
+        [Tooltip("パーティクル数")]
         private int _maxParticleNum = 1000;
 
         [SerializeField]
+        [Tooltip("ランダムの最小ライフタイム")]
         private float _minLifeTime = 1f;
 
         [SerializeField]
+        [Tooltip("ランダムの最大ライフタイム")]
         private float _maxLifeTime = 5f;
+
+        [SerializeField]
+        [Tooltip("ベースのスケール")]
+        private float _baseScale = 0.001f;
 
         [SerializeField]
         private Mesh _mesh;
@@ -56,10 +64,13 @@ namespace CurlNoiseSample
         private Color _particleColor;
 
         [SerializeField]
-		private float[] _noiseScales = new [] { 100f, 10f, 5f, };
+        private float[] _noiseScales = new[] { 100f, 10f, 5f, };
 
-		[SerializeField]
-		private float[] _noiseGain = new [] { 1.0f, 0.5f, 0.25f, };
+        [SerializeField]
+        private float[] _noiseGain = new[] { 1.0f, 0.5f, 0.25f, };
+
+        [SerializeField]
+        private float _ringRadius = 0.01f;
 
         [SerializeField]
         private int _seed = 100;
@@ -196,9 +207,10 @@ namespace CurlNoiseSample
 
             Vector3 p = _sphere.transform.position;
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
-			_computeShader.SetFloats("_NoiseGain", _noiseGain);
-			_computeShader.SetFloat("_PlumeBase", -_noiseScales[0] * 0.5f);
-			_computeShader.SetFloat("_PlumeHeight", _noiseScales[0]);
+            _computeShader.SetFloats("_NoiseGain", _noiseGain);
+            _computeShader.SetFloat("_PlumeBase", -_noiseScales[0] * 0.5f);
+            _computeShader.SetFloat("_PlumeHeight", _noiseScales[0]);
+            _computeShader.SetFloat("_RingRadius", _ringRadius);
             _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
@@ -248,9 +260,9 @@ namespace CurlNoiseSample
 
             for (int i = 0; i < _maxParticleNum; i++)
             {
-                float x = Random.Range(-1f, 1f);
-                float y = Random.Range(-3f, -1f);
-                float z = Random.Range(-1f, 1f);
+                float x = Random.Range(-0.1f, 0.1f);
+                float y = Random.Range(-0.1f, 0.1f);
+                float z = Random.Range(-0.1f, 0.1f);
 
                 float r = _particleColor.r;
                 float g = _particleColor.g;
@@ -263,6 +275,7 @@ namespace CurlNoiseSample
                     position = new Vector3(x, y, z),
                     color = new Vector3(r, g, b),
                     scale = 1.0f,
+                    baseScale = _baseScale,
                     time = 0,
                     liefTime = Random.Range(_minLifeTime, _maxLifeTime),
                 };

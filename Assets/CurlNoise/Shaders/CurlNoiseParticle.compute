@@ -17,12 +17,12 @@ struct Particle
     float3 velocity;
     float3 color;
     float scale;
+    float baseScale;
     float time;
     float lifeTime;
 };
 
 RWStructuredBuffer<Particle> _Particles;
-
 
 int _Octaves;
 
@@ -38,6 +38,7 @@ float _CurlNoiseIntencity;
 
 float _PlumeBase;
 float _PlumeHeight;
+float _RingRadius;
 
 
 // ふたつのベクトルを合成する
@@ -78,10 +79,10 @@ float3 SamplePotential(float3 pos)
         psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
-    float3 risingForce = normalize(float3(0, 0, 0) - pos);
-    float3 rpsi = float3(-risingForce.z, 0, risingForce.x);
-    float ringRadius = 1.0;
-    float alpha = abs(Ramp(distance / ringRadius));
+    //float3 risingForce = float3(0, 0, 0) - pos;
+    // rising force = float3(0) - pos
+    float3 rpsi = float3(pos.z, 0, -pos.x);
+    float alpha = abs(Ramp(distance / _RingRadius));
     psi += BlendVectors(rpsi, normal, alpha);
 
     return psi;
@@ -112,12 +113,16 @@ float PerlinNoise(float3 vec)
     float result = 0;
     float amp = 1.0;
 
-    for (int i = 0; i < _Octaves; i++)
-    {
-        result += Noise(vec) * amp;
-        vec *= 2.0;
-        amp *= 0.5;
-    }
+    result += Noise(vec) * amp;
+    vec *= 2.0;
+    amp *= 0.5;
+
+    //for (int i = 0; i < _Octaves; i++)
+    //{
+    //    result += Noise(vec) * amp;
+    //    vec *= 2.0;
+    //    amp *= 0.5;
+    //}
 
     return result;
 }
@@ -176,8 +181,8 @@ float3 Pnoise(float3 vec)
 
 float3 CurlNoise(float3 p)
 {
-    const float e = 1e-4;
-    //const float e = 0.0009765625;
+    //const float e = 1e-4;
+    const float e = 0.0009765625;
     const float e2 = 2.0 * e;
     const float invE2 = 1.0 / e2;
 
