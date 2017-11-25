@@ -23,6 +23,8 @@ namespace CurlNoiseSample
         // 1メッシュに入る最大長点数
         const int MAX_VERTEX_NUM = 65534;
 
+        #region ### パーティクル設定 ###
+        [Header("==== パーティクル設定 ====")]
         [SerializeField]
         private int _maxParticleNum = 1000;
 
@@ -37,7 +39,10 @@ namespace CurlNoiseSample
 
         [SerializeField]
         private Shader _shader;
+        #endregion ### パーティクル設定 ###
 
+        #region ### カールノイズ設定 ###
+        [Header("==== カールノイズ設定 ====")]
         [SerializeField]
         ComputeShader _computeShader;
 
@@ -65,7 +70,9 @@ namespace CurlNoiseSample
         [SerializeField]
         [Range(0f, 1f)]
         private float _curlNoiseIntencity = 1f;
+        #endregion ### カールノイズ設定 ###
 
+        #region ### Private fields ###
         private int[] _p;
         private ComputeBuffer _buff;
         private Mesh _combinedMesh;
@@ -78,7 +85,9 @@ namespace CurlNoiseSample
         private int _kernelIndex;
         private int _particleNumPerMesh;
         private int _meshNum;
+        #endregion ### Private fields ###
 
+        #region ### MonoBehaviour ###
         private void OnDisable()
         {
             _particles.Release();
@@ -100,6 +109,7 @@ namespace CurlNoiseSample
             Gizmos.color = Color.blue;
             Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScale);
         }
+        #endregion ### MonoBehaviour ###
 
         /// <summary>
         /// 指定した数分、マージしたメッシュを生成する
@@ -157,6 +167,9 @@ namespace CurlNoiseSample
 
         }
 
+        /// <summary>
+        /// Compute Shaderを使って位置を更新する
+        /// </summary>
         private void UpdatePosition()
         {
             float frequency = Mathf.Clamp(_frequency, 0.1f, 64.0f);
@@ -195,6 +208,10 @@ namespace CurlNoiseSample
             }
         }
 
+        /// <summary>
+        /// パーリンノイズ用のグリッドを生成する
+        /// </summary>
+        /// <returns></returns>
         private int[] CreateGrid()
         {
             int[] p = new int[256];
@@ -212,19 +229,24 @@ namespace CurlNoiseSample
             return p2;
         }
 
+        /// <summary>
+        /// パーティクルを生成する
+        /// </summary>
+        /// <returns></returns>
         private Particle[] GenerateParticles()
         {
             Particle[] particles = new Particle[_maxParticleNum];
 
             for (int i = 0; i < _maxParticleNum; i++)
             {
-                float x = Random.Range(-5f, 5f);
-                float y = Random.Range(-5f, 5f);
-                float z = Random.Range(-5f, 5f);
+                float x = Random.Range(-1f, 1f);
+                float y = Random.Range(-3f, -1f);
+                float z = Random.Range(-1f, 1f);
 
                 float r = _particleColor.r;
                 float g = _particleColor.g;
                 float b = _particleColor.b;
+
                 Particle p = new Particle
                 {
                     id = i,
@@ -242,6 +264,9 @@ namespace CurlNoiseSample
             return particles;
         }
 
+        /// <summary>
+        /// 初期化処理
+        /// </summary>
         private void Initialize()
         {
             int seed = Mathf.Clamp(_seed, 0, 2 << 30 - 1);
