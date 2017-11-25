@@ -56,7 +56,7 @@ namespace CurlNoiseSample
         private Color _particleColor;
 
         [SerializeField]
-        private float _noiseScale = 1.0f;
+		private float[] _noiseScales = new [] { 100f, 10f, 5f, };
 
         [SerializeField]
         private int _seed = 100;
@@ -107,7 +107,13 @@ namespace CurlNoiseSample
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.blue;
-            Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScale);
+            Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScales[0]);
+
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScales[1]);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScales[2]);
         }
         #endregion ### MonoBehaviour ###
 
@@ -175,9 +181,6 @@ namespace CurlNoiseSample
             float frequency = Mathf.Clamp(_frequency, 0.1f, 64.0f);
             int octaves = Mathf.Clamp(_octaves, 1, 16);
 
-            float fx = _noiseScale / frequency;
-            float fy = _noiseScale / frequency;
-
             if (_buff == null)
             {
                 _buff = new ComputeBuffer(512, sizeof(int));
@@ -185,12 +188,11 @@ namespace CurlNoiseSample
             }
 
             _computeShader.SetInt("_Octaves", octaves);
-            _computeShader.SetFloat("_Fx", fx);
-            _computeShader.SetFloat("_Fy", fy);
+            _computeShader.SetFloat("_Frequency", frequency);
             _computeShader.SetBuffer(_kernelIndex, "_P", _buff);
 
             Vector3 p = _sphere.transform.position;
-            _computeShader.SetFloat("_NoiseScale", _noiseScale);
+            _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);

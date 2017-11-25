@@ -5,12 +5,9 @@
 
 StructuredBuffer<int> _P;
 
-int _Octaves;
-float _Fx;
-float _Fy;
-
-inline float Noise(float2 vec);
 float Noise(float3 vec);
+float3 ComputeGradient(float3 p);
+float3 Pnoise(float3 vec);
 
 struct Particle
 {
@@ -26,16 +23,18 @@ struct Particle
 
 RWStructuredBuffer<Particle> _Particles;
 
-float _SpeedFactor;
-float _DeltaTime;
+
+int _Octaves;
 
 float3 _SphereCenter;
+float3 _NoiseScales;
+
+float _Frequency;
+float _SpeedFactor;
+float _DeltaTime;
 float _SphereRadius;
-float _NoiseScale;
 float _CurlNoiseIntencity;
 
-float3 ComputeGradient(float3 p);
-float3 Pnoise(float3 vec);
 
 // ふたつのベクトルを合成する
 float3 BlendVectors(float3 potential, float3 normal, float alpha)
@@ -60,15 +59,21 @@ float SampleDistance(float3 p)
 float3 SamplePotential(float3 pos)
 {
     float3 normal = ComputeGradient(pos);
-    float obstacleDistance = SampleDistance(pos);
+    float distance = SampleDistance(pos);
 
-    float alpha = abs(Ramp(obstacleDistance / _NoiseScale));
+    float3 psi = float3(0, 0, 0);
 
-    float3 scaledPos = pos / _NoiseScale;
-    //float3 psi = Snoise(scaledPos);
-    float3 psi = Pnoise(scaledPos);
+    for (int i = 0; i < 3; i++)
+    {
+	    float alpha = abs(Ramp(distance / _NoiseScales[i]));
 
-    return BlendVectors(psi, normal, alpha);
+	    float3 s = pos / _NoiseScales[i];
+
+	    float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
+	    psi += psi_i;
+    }
+
+    return psi;
 }
 
 
@@ -91,22 +96,6 @@ float3 ComputeGradient(float3 p)
     return normalize(float3(dfdx, dfdy, dfdz));
 }
 
-
-float PerlinNoise(float2 vec)
-{
-    float result = 0;
-    float amp = 1.0;
-
-    for (int i = 0; i < _Octaves; i++)
-    {
-        result += Noise(vec) * amp;
-        vec *= 2.0;
-        amp *= 0.5;
-    }
-
-    return result;
-}
-
 float PerlinNoise(float3 vec)
 {
     float result = 0;
@@ -120,11 +109,6 @@ float PerlinNoise(float3 vec)
     }
 
     return result;
-}
-
-inline float Noise(float2 vec)
-{
-    return Noise(float3(vec, 0));
 }
 
 float Noise(float3 vec)
