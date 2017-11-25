@@ -70,12 +70,12 @@ float3 SamplePotential(float3 pos)
     float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
     for (int i = 0; i < 3; i++)
     {
-	    float alpha = abs(Ramp(distance / _NoiseScales[i]));
+        float alpha = abs(Ramp(distance / _NoiseScales[i]));
 
-	    float3 s = pos / _NoiseScales[i];
+        float3 s = pos / _NoiseScales[i];
 
-	    float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
-	    psi += psi_i * heightFactor * _NoiseGain[i];
+        float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
+        psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
     float3 risingForce = normalize(float3(0, 0, 0) - pos);
@@ -142,13 +142,13 @@ float Noise(float3 vec)
     B = _P[X + 1] + Y; BA = _P[B] + Z; BB = _P[B + 1] + Z;
 
     return Lerp(w, Lerp(v, Lerp(u, Grad(_P[AA + 0], vec.x + 0, vec.y + 0, vec.z + 0),
-                                   Grad(_P[BA + 0], vec.x - 1, vec.y + 0, vec.z + 0)),
-                           Lerp(u, Grad(_P[AB + 0], vec.x + 0, vec.y - 1, vec.z + 0),
-                                   Grad(_P[BB + 0], vec.x - 1, vec.y - 1, vec.z + 0))),
-                   Lerp(v, Lerp(u, Grad(_P[AA + 1], vec.x + 0, vec.y + 0, vec.z - 1),
-                                   Grad(_P[BA + 1], vec.x - 1, vec.y + 0, vec.z - 1)),
-                           Lerp(u, Grad(_P[AB + 1], vec.x + 0, vec.y - 1, vec.z - 1),
-                                   Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
+        Grad(_P[BA + 0], vec.x - 1, vec.y + 0, vec.z + 0)),
+        Lerp(u, Grad(_P[AB + 0], vec.x + 0, vec.y - 1, vec.z + 0),
+            Grad(_P[BB + 0], vec.x - 1, vec.y - 1, vec.z + 0))),
+        Lerp(v, Lerp(u, Grad(_P[AA + 1], vec.x + 0, vec.y + 0, vec.z - 1),
+            Grad(_P[BA + 1], vec.x - 1, vec.y + 0, vec.z - 1)),
+            Lerp(u, Grad(_P[AB + 1], vec.x + 0, vec.y - 1, vec.z - 1),
+                Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
 }
 
 // パーリンノイズによるベクトル場
@@ -162,13 +162,13 @@ float3 Pnoise(float3 vec)
         vec.y + 31.416,
         vec.z - 47.853,
         vec.x + 12.793
-    ));
+        ));
 
     float z = PerlinNoise(float3(
         vec.z - 233.145,
         vec.x - 113.408,
         vec.y - 185.31
-    ));
+        ));
 
     return float3(x, y, z);
 }
@@ -181,9 +181,9 @@ float3 CurlNoise(float3 p)
     const float e2 = 2.0 * e;
     const float invE2 = 1.0 / e2;
 
-    float3 dx = float3(  e, 0.0, 0.0);
-    float3 dy = float3(0.0,   e, 0.0);
-    float3 dz = float3(0.0, 0.0,   e);
+    float3 dx = float3(e, 0.0, 0.0);
+    float3 dy = float3(0.0, e, 0.0);
+    float3 dz = float3(0.0, 0.0, e);
 
     float3 p_x0 = SamplePotential(p - dx);
     float3 p_x1 = SamplePotential(p + dx);
@@ -199,7 +199,7 @@ float3 CurlNoise(float3 p)
     return float3(x, y, z) * invE2;
 }
 
-[numthreads(8,1,1)]
+[numthreads(8, 1, 1)]
 void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
     float3 input = _Particles[id].position;
