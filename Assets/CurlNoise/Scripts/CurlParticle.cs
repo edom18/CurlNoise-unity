@@ -58,6 +58,9 @@ namespace CurlNoiseSample
         [SerializeField]
 		private float[] _noiseScales = new [] { 100f, 10f, 5f, };
 
+		[SerializeField]
+		private float[] _noiseGain = new [] { 1.0f, 0.5f, 0.25f, };
+
         [SerializeField]
         private int _seed = 100;
 
@@ -193,12 +196,16 @@ namespace CurlNoiseSample
 
             Vector3 p = _sphere.transform.position;
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
+			_computeShader.SetFloats("_NoiseGain", _noiseGain);
+			_computeShader.SetFloat("_PlumeBase", -_noiseScales[0] * 0.5f);
+			_computeShader.SetFloat("_PlumeHeight", _noiseScales[0]);
             _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
             _computeShader.SetFloat("_SpeedFactor", _speedFactor);
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
+
             _computeShader.Dispatch(_kernelIndex, _maxParticleNum / 8, 1, 1);
 
             for (int i = 0; i < _meshNum; i++)

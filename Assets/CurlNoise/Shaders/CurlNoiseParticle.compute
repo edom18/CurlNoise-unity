@@ -28,12 +28,16 @@ int _Octaves;
 
 float3 _SphereCenter;
 float3 _NoiseScales;
+float3 _NoiseGain;
 
 float _Frequency;
 float _SpeedFactor;
 float _DeltaTime;
 float _SphereRadius;
 float _CurlNoiseIntencity;
+
+float _PlumeBase;
+float _PlumeHeight;
 
 
 // ふたつのベクトルを合成する
@@ -63,6 +67,7 @@ float3 SamplePotential(float3 pos)
 
     float3 psi = float3(0, 0, 0);
 
+    float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
     for (int i = 0; i < 3; i++)
     {
 	    float alpha = abs(Ramp(distance / _NoiseScales[i]));
@@ -70,8 +75,14 @@ float3 SamplePotential(float3 pos)
 	    float3 s = pos / _NoiseScales[i];
 
 	    float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
-	    psi += psi_i;
+	    psi += psi_i * heightFactor * _NoiseGain[i];
     }
+
+    float3 risingForce = normalize(float3(0, 0, 0) - pos);
+    float3 rpsi = float3(-risingForce.z, 0, risingForce.x);
+    float ringRadius = 1.0;
+    float alpha = abs(Ramp(distance / ringRadius));
+    psi += BlendVectors(rpsi, normal, alpha);
 
     return psi;
 }
