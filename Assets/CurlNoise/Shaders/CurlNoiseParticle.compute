@@ -95,21 +95,24 @@ float3 SamplePotential(float3 pos)
     float alpha = abs(Ramp(distance / _RingRadius));
     //psi += BlendVectors(risingForce, normal, alpha);
 
+    // ringの半径？
+    // XZ平面の中心からの半径？ RingRadius？
+    float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
+    float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
+    float invSecond = 1.0 / _RingPerSecond;
+
     // 「煙の柱（Plume）」の下端以下になるまで繰り返す
     while (ringY > _PlumeBase)
     {
         // ringの位置とパーティクルのYの差分
         float ry = pos.y - ringY;
 
-        // ringの半径？
-        // XZ平面の中心からの半径？ RingRadius？
-        float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
-        float b = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff;
+        float b = temp + sqr(ry);
         float rmag = _RingMagnitude / b;
 
         float3 rpsi = rmag * risingForce;
         psi += BlendVectors(rpsi, normal, alpha);
-        ringY -= _RingSpeed / _RingPerSecond;
+        ringY -= _RingSpeed * invSecond;
     }
 
     return psi;
@@ -174,13 +177,13 @@ float Noise(float3 vec)
     B = _P[X + 1] + Y; BA = _P[B] + Z; BB = _P[B + 1] + Z;
 
     return Lerp(w, Lerp(v, Lerp(u, Grad(_P[AA + 0], vec.x + 0, vec.y + 0, vec.z + 0),
-        Grad(_P[BA + 0], vec.x - 1, vec.y + 0, vec.z + 0)),
-        Lerp(u, Grad(_P[AB + 0], vec.x + 0, vec.y - 1, vec.z + 0),
-            Grad(_P[BB + 0], vec.x - 1, vec.y - 1, vec.z + 0))),
-        Lerp(v, Lerp(u, Grad(_P[AA + 1], vec.x + 0, vec.y + 0, vec.z - 1),
-            Grad(_P[BA + 1], vec.x - 1, vec.y + 0, vec.z - 1)),
-            Lerp(u, Grad(_P[AB + 1], vec.x + 0, vec.y - 1, vec.z - 1),
-                Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
+                                    Grad(_P[BA + 0], vec.x - 1, vec.y + 0, vec.z + 0)),
+                            Lerp(u, Grad(_P[AB + 0], vec.x + 0, vec.y - 1, vec.z + 0),
+                                    Grad(_P[BB + 0], vec.x - 1, vec.y - 1, vec.z + 0))),
+                    Lerp(v, Lerp(u, Grad(_P[AA + 1], vec.x + 0, vec.y + 0, vec.z - 1),
+                                    Grad(_P[BA + 1], vec.x - 1, vec.y + 0, vec.z - 1)),
+                            Lerp(u, Grad(_P[AB + 1], vec.x + 0, vec.y - 1, vec.z - 1),
+                                    Grad(_P[BB + 1], vec.x - 1, vec.y - 1, vec.z - 1))));
 }
 
 // パーリンノイズによるベクトル場
@@ -233,19 +236,26 @@ float3 CurlNoise(float3 p)
 [numthreads(8, 1, 1)]
 void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
-    float3 input = _Particles[id].position;
+    float3 pos = _Particles[id].position;
 
-    float3 velocity = CurlNoise(input) * _CurlNoiseIntencity;
+    float3 velocity = CurlNoise(pos);
+    //float3 midx = pos + 0.5 * _DeltaTime * velocity * _CurlNoiseIntencity * _SpeedFactor;
+    //_Particles[id].position += CurlNoise(midx) * _SpeedFactor * _CurlNoiseIntencity * _DeltaTime;
+
+    _Particles[id].velocity = velocity * _SpeedFactor * _CurlNoiseIntencity;
+    _Particles[id].position += _Particles[id].velocity * _DeltaTime;
 
     _Particles[id].time += _DeltaTime;
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
-    _Particles[id].velocity = velocity * _SpeedFactor;
-    _Particles[id].position += _Particles[id].velocity * _DeltaTime;
-
     if (scale < 0)
     {
-        _Particles[id].active = false;
-        scale = 0;
+        //_Particles[id].active = false;
+        scale = 1.0;
+        float x = Rand(_Particles[id].position);
+        float y = Rand(_Particles[id].position + 100.0);
+        float z = Rand(_Particles[id].position + 135.0);
+        _Particles[id].position = normalize(float3(x, y, z) * 2.0 - 1.0) * 0.05;
+        _Particles[id].time = 0;
     }
 
     _Particles[id].scale = scale;
