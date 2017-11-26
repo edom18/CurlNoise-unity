@@ -70,6 +70,9 @@ namespace CurlNoiseSample
         private float[] _noiseGain = new[] { 1.0f, 0.5f, 0.25f, };
 
         [SerializeField]
+        private Vector3 _risingForce = new Vector3(0, 0, -0.3f);
+
+        [SerializeField]
         private float _plumeBase = -3f;
 
         [SerializeField]
@@ -238,6 +241,10 @@ namespace CurlNoiseSample
             #region ### カールノイズパラメータ ###
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloats("_NoiseGain", _noiseGain);
+
+            Vector3 rf = _risingForce;
+            _computeShader.SetFloats("_RisingForce", new[] { rf.x, rf.y, rf.z });
+
             _computeShader.SetFloat("_PlumeBase", _plumeBase);
             _computeShader.SetFloat("_PlumeHeight", _plumeHeight);
             _computeShader.SetFloat("_RingRadius", _ringRadius);

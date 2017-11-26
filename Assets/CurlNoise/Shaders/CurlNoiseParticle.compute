@@ -31,6 +31,7 @@ float4 _SphereParam;
 
 float3 _NoiseScales;
 float3 _NoiseGain;
+float3 _RisingForce;
 
 float _Frequency;
 float _SpeedFactor;
@@ -90,11 +91,9 @@ float3 SamplePotential(float3 pos)
         psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
-    float3 risingForce = float3(0, 0, -0.3);
-
     float ringY = _PlumeCeiling;
     float alpha = abs(Ramp(distance / _RingRadius));
-    //psi += BlendVectors(risingForce, normal, alpha);
+    //psi += BlendVectors(_RisingForce, normal, alpha);
 
     // ringの半径？
     // XZ平面の中心からの半径？ RingRadius？
@@ -111,7 +110,7 @@ float3 SamplePotential(float3 pos)
         float b = temp + sqr(ry);
         float rmag = _RingMagnitude / b;
 
-        float3 rpsi = rmag * risingForce;
+        float3 rpsi = rmag * _RisingForce;
         psi += BlendVectors(rpsi, normal, alpha);
         ringY -= _RingSpeed * invSecond;
     }
