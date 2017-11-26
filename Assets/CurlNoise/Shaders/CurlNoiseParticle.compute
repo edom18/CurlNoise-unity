@@ -38,9 +38,9 @@ float _CurlNoiseIntencity;
 
 float _PlumeBase;
 float _PlumeHeight;
+float _PlumeCeiling;
 float _RingRadius;
 float _RingMagnitude;
-float _PlumeCeiling;
 float _RingFalloff;
 float _RingSpeed;
 float _RingPerSecond;
@@ -91,8 +91,7 @@ float3 SamplePotential(float3 pos)
 
     float3 risingForce = float3(0, 0, -0.3);
 
-    const float PlumeCeiling = 3.0;
-    float ringY = PlumeCeiling;
+    float ringY = _PlumeCeiling;
     float alpha = abs(Ramp(distance / _RingRadius));
     //psi += BlendVectors(risingForce, normal, alpha);
 
@@ -107,6 +106,7 @@ float3 SamplePotential(float3 pos)
         float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
         float b = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff;
         float rmag = _RingMagnitude / b;
+
         float3 rpsi = rmag * risingForce;
         psi += BlendVectors(rpsi, normal, alpha);
         ringY -= _RingSpeed / _RingPerSecond;
@@ -212,9 +212,9 @@ float3 CurlNoise(float3 p)
     const float e2 = 2.0 * e;
     const float invE2 = 1.0 / e2;
 
-    float3 dx = float3(e, 0.0, 0.0);
-    float3 dy = float3(0.0, e, 0.0);
-    float3 dz = float3(0.0, 0.0, e);
+    const float3 dx = float3(e, 0.0, 0.0);
+    const float3 dy = float3(0.0, e, 0.0);
+    const float3 dz = float3(0.0, 0.0, e);
 
     float3 p_x0 = SamplePotential(p - dx);
     float3 p_x1 = SamplePotential(p + dx);
