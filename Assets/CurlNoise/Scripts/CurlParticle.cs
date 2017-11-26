@@ -236,21 +236,27 @@ namespace CurlNoiseSample
             _computeShader.SetBuffer(_kernelIndex, "_P", _buff);
 
             Vector3 p = _sphere.transform.position;
+
+            #region ### カールノイズパラメータ ###
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloats("_NoiseGain", _noiseGain);
             _computeShader.SetFloat("_PlumeBase", _plumeBase);
             _computeShader.SetFloat("_PlumeHeight", _plumeHeight);
             _computeShader.SetFloat("_RingRadius", _ringRadius);
-
             _computeShader.SetFloat("_RingMagnitude", _ringMagnitude);
             _computeShader.SetFloat("_PlumeCeiling", _plumeCeiling);
             _computeShader.SetFloat("_RingFalloff", _ringFalloff);
             _computeShader.SetFloat("_RingSpeed", _ringSpeed);
             _computeShader.SetFloat("_RingPerSecond", _ringPerSecond);
             _computeShader.SetFloat("_CurlNoiseIntencity", _curlNoiseIntencity);
+            _computeShader.SetFloat("_SpeedFactor", _speedFactor);
+            #endregion ### カールノイズパラメータ ###
+
+            #region ### Sphere設定 ###
             _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
             _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
-            _computeShader.SetFloat("_SpeedFactor", _speedFactor);
+            #endregion ### Sphere設定 ###
+
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
             _computeShader.SetFloat("_DeltaTime", Time.deltaTime);
 
