@@ -88,26 +88,22 @@ float3 SamplePotential(float3 pos)
         psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
-    //float3 risingForce = float3(0, 0, 0) - pos;
-    // rising force = float3(0) - pos
-    //float3 risingForce = float3(pos.z, 0, -pos.x);
-    float3 risingForce = float3(0, 0, -0.5);
+    float3 risingForce = float3(0, 0, -0.3);
 
-    //const float PlumeCeiling = 3.0;
-    //float ringY = PlumeCeiling;
+    const float PlumeCeiling = 3.0;
+    float ringY = PlumeCeiling;
     float alpha = abs(Ramp(distance / _RingRadius));
-    psi += BlendVectors(risingForce, normal, alpha);
+    //psi += BlendVectors(risingForce, normal, alpha);
 
-    //[unroll]
-    //while (ringY > -3.0)
-    //{
-    //    float ry = pos.y - ringY;
-    //    float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
-    //    float rmag = _RingMagnitude / (sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff);
-    //    float3 rpsi = rmag * risingForce;
-    //    psi += BlendVectors(rpsi, normal, alpha);
-    //    ringY -= _RingSpeed / _RingPerSecond;
-    //}
+    while (ringY > _PlumeBase)
+    {
+        float ry = pos.y - ringY;
+        float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
+        float rmag = _RingMagnitude / (sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff);
+        float3 rpsi = rmag * risingForce;
+        psi += BlendVectors(rpsi, normal, alpha);
+        ringY -= _RingSpeed / _RingPerSecond;
+    }
 
     return psi;
 }
