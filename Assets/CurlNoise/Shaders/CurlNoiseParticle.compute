@@ -26,14 +26,15 @@ RWStructuredBuffer<Particle> _Particles;
 
 int _Octaves;
 
-float3 _SphereCenter;
+// xyz = center, w = radius
+float4 _SphereParam;
+
 float3 _NoiseScales;
 float3 _NoiseGain;
 
 float _Frequency;
 float _SpeedFactor;
 float _DeltaTime;
-float _SphereRadius;
 float _CurlNoiseIntencity;
 
 float _PlumeBase;
@@ -64,9 +65,9 @@ float3 BlendVectors(float3 potential, float3 normal, float alpha)
 // 計算点から、障害物への距離を計算する
 float SampleDistance(float3 p)
 {
-    float3 u = p - _SphereCenter;
+    float3 u = p - _SphereParam.xyz;
     float d = length(u);
-    return d - _SphereRadius;
+    return d - _SphereParam.w;
 }
 
 // α = ramp(d(x)/d0)

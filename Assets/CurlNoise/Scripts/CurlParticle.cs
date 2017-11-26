@@ -235,8 +235,6 @@ namespace CurlNoiseSample
             _computeShader.SetFloat("_Frequency", frequency);
             _computeShader.SetBuffer(_kernelIndex, "_P", _buff);
 
-            Vector3 p = _sphere.transform.position;
-
             #region ### カールノイズパラメータ ###
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloats("_NoiseGain", _noiseGain);
@@ -253,8 +251,9 @@ namespace CurlNoiseSample
             #endregion ### カールノイズパラメータ ###
 
             #region ### Sphere設定 ###
-            _computeShader.SetFloats("_SphereCenter", new[] { p.x, p.y, p.z });
-            _computeShader.SetFloat("_SphereRadius", _sphere.transform.lossyScale.x * 0.5f);
+            Vector3 p = _sphere.transform.position;
+            float r = _sphere.transform.lossyScale.x * 0.5f;
+            _computeShader.SetVector("_SphereParam", new Vector4(p.x, p.y, p.z, r));
             #endregion ### Sphere設定 ###
 
             _computeShader.SetBuffer(_kernelIndex, "_Particles", _particles);
