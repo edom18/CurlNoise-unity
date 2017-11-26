@@ -34,3 +34,8 @@ float Grad(int hash, float x, float y, float z)
     float v = (h < 4) ? y : (h == 12 || h == 14) ? x : z;
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
+
+float Rand(float3 co)
+{
+    return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 56.787))) * 43758.5453);
+}
