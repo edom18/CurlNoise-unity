@@ -107,6 +107,10 @@ namespace CurlNoiseSample
         private float _curlNoiseIntencity = 1f;
         #endregion ### カールノイズ設定 ###
 
+        [Header("==== デバッグツール ====")]
+        [SerializeField]
+        private bool _showGizmos = true;
+
         #region ### Private fields ###
         private int[] _p;
         private ComputeBuffer _buff;
@@ -141,6 +145,11 @@ namespace CurlNoiseSample
 
         private void OnDrawGizmos()
         {
+            if (!_showGizmos)
+            {
+                return;
+            }
+
             Gizmos.color = Color.blue;
             Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScales[0]);
 
