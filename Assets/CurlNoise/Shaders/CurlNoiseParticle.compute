@@ -45,6 +45,7 @@ float _RingFalloff;
 float _RingSpeed;
 float _RingPerSecond;
 
+// Squre（平方）
 inline float sqr(float x)
 {
     return x * x;
@@ -95,11 +96,17 @@ float3 SamplePotential(float3 pos)
     float alpha = abs(Ramp(distance / _RingRadius));
     //psi += BlendVectors(risingForce, normal, alpha);
 
+    // 「煙の柱（Plume）」の下端以下になるまで繰り返す
     while (ringY > _PlumeBase)
     {
+        // ringの位置とパーティクルのYの差分
         float ry = pos.y - ringY;
+
+        // ringの半径？
+        // XZ平面の中心からの半径？ RingRadius？
         float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
-        float rmag = _RingMagnitude / (sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff);
+        float b = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + sqr(ry) + _RingFalloff;
+        float rmag = _RingMagnitude / b;
         float3 rpsi = rmag * risingForce;
         psi += BlendVectors(rpsi, normal, alpha);
         ringY -= _RingSpeed / _RingPerSecond;
