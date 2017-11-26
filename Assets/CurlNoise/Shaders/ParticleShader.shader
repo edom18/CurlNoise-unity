@@ -66,6 +66,28 @@
         }
         ENDCG
 
+        //Pass
+        //{
+        //    Stencil
+        //    {
+        //        Ref 10
+        //        Comp Equal
+        //        Pass IncrSat
+        //    }
+
+        //    ColorMask 0
+
+        //    ZWrite On
+        //    ZTest LEqual
+        //    Cull Off
+
+        //    CGPROGRAM
+        //    #pragma target 3.0
+        //    #pragma vertex vert
+        //    #pragma fragment frag
+        //    ENDCG
+        //}
+
         Pass
         {
             ZWrite On
