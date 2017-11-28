@@ -161,6 +161,12 @@ namespace CurlNoiseSample
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(transform.position, Vector3.one * _noiseScales[2]);
+
+            Gizmos.color = Color.cyan;
+			Gizmos.DrawWireSphere(_sphere.position, _sphere.transform.lossyScale.x * 0.5f);
+
+            Gizmos.color = Color.yellow;
+			Gizmos.DrawWireSphere(_sphere.position, _ringRadius);
         }
         #endregion ### MonoBehaviour ###
 
