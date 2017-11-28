@@ -2,7 +2,7 @@
 {
     SubShader
     {
-        Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
+        Tags { "RenderType" = "Transparent" "Queue" = "Transparent" "ForceNoShadowCasting"="True" }
         LOD 200
 
         CGINCLUDE
