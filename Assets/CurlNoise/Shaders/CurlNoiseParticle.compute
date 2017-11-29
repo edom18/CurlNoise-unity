@@ -1,9 +1,11 @@
 ﻿#pragma kernel CurlNoiseMain
+#pragma kernel OutputResult
 
 #include "SimplexNoise.cginc"
 #include "NoiseMath.cginc"
 
 StructuredBuffer<int> _P;
+RWTexture2D<float4> _Result;
 
 float Noise(float3 vec);
 float3 ComputeGradient(float3 p);
@@ -80,40 +82,45 @@ float3 SamplePotential(float3 pos)
 
     float3 psi = float3(0, 0, 0);
 
-    float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
-    for (int i = 0; i < 3; i++)
-    {
-        float alpha = abs(Ramp(distance / _NoiseScales[i]));
+    //float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
+    //for (int i = 0; i < 3; i++)
+    //{
+    //    float alpha = abs(Ramp(distance / _NoiseScales[i]));
 
-        float3 s = pos / _NoiseScales[i];
+    //    float3 s = pos / _NoiseScales[i];
 
-        float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
-        psi += psi_i * heightFactor * _NoiseGain[i];
-    }
+    //    float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
+    //    psi += psi_i * heightFactor * _NoiseGain[i];
+    //}
 
-    float ringY = _PlumeCeiling;
-    float alpha = abs(Ramp(distance / _RingRadius));
+    //float intencity = abs(Ramp(distance / _NoiseScales[0]));
+    const float3 right = float3(1, 0, 0);
+    float d = abs(dot(right, normal));
+    psi += _RisingForce * d;
+
+    //float alpha = abs(Ramp(distance / _RingRadius));
     //psi += BlendVectors(_RisingForce, normal, alpha);
 
-    // ringの半径？
-    // XZ平面の中心からの半径？ RingRadius？
-    float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
-    float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
-    float invSecond = 1.0 / _RingPerSecond;
+    //// ringの半径？
+    //// XZ平面の中心からの半径？ RingRadius？
+    //float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
+    //float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
+    //float invSecond = 1.0 / _RingPerSecond;
+    //float ringY = _PlumeCeiling;
 
-    // 「煙の柱（Plume）」の下端以下になるまで繰り返す
-    while (ringY > _PlumeBase)
-    {
-        // ringの位置とパーティクルのYの差分
-        float ry = pos.y - ringY;
+    //// 「煙の柱（Plume）」の下端以下になるまで繰り返す
+    //while (ringY > _PlumeBase)
+    //{
+    //    // ringの位置とパーティクルのYの差分
+    //    float ry = pos.y - ringY;
 
-        float b = temp + sqr(ry);
-        float rmag = _RingMagnitude / b;
+    //    float b = temp + sqr(ry);
+    //    float rmag = _RingMagnitude / b;
 
-        float3 rpsi = rmag * _RisingForce;
-        psi += BlendVectors(rpsi, normal, alpha);
-        ringY -= _RingSpeed * invSecond;
-    }
+    //    float3 rpsi = rmag * _RisingForce;
+    //    psi += BlendVectors(rpsi, normal, alpha);
+    //    ringY -= _RingSpeed * invSecond;
+    //}
 
     return psi;
 }
@@ -259,4 +266,11 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
     }
 
     _Particles[id].scale = scale;
+}
+
+[numthreads(8, 8, 1)]
+void OutputResult(uint2 id : SV_DispatchThreadID)
+{
+    float d = SampleDistance(float3(id.x / 256.0, id.y / 256.0, 0));
+    _Result[id] = float4(d, d, d, 1);
 }

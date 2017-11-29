@@ -114,6 +114,12 @@ namespace CurlNoiseSample
         [SerializeField]
         private bool _showGizmos = true;
 
+        [SerializeField]
+        private GameObject _quad;
+
+        private Material _material;
+        private RenderTexture _renderTexture;
+
         #region ### Private fields ###
         private int[] _p;
         private ComputeBuffer _buff;
@@ -125,6 +131,7 @@ namespace CurlNoiseSample
         private Xorshift _xorshift;
 
         private int _kernelIndex;
+        private int _kernelIndex2;
         private int _particleNumPerMesh;
         private int _meshNum;
         #endregion ### Private fields ###
@@ -244,6 +251,7 @@ namespace CurlNoiseSample
             _computeShader.SetFloat("_Frequency", frequency);
             _computeShader.SetBuffer(_kernelIndex, "_P", _buff);
 
+
             #region ### カールノイズパラメータ ###
             _computeShader.SetFloats("_NoiseScales", _noiseScales);
             _computeShader.SetFloats("_NoiseGain", _noiseGain);
@@ -281,6 +289,9 @@ namespace CurlNoiseSample
                 material.SetBuffer("_Particles", _particles);
                 Graphics.DrawMesh(_combinedMesh, transform.position, transform.rotation, material, 0);
             }
+
+            _computeShader.SetTexture(_kernelIndex2, "_Result", _renderTexture);
+            _computeShader.Dispatch(_kernelIndex2, _renderTexture.width / 8, _renderTexture.height / 8, 1);
         }
 
         /// <summary>
@@ -366,7 +377,16 @@ namespace CurlNoiseSample
             Particle[] particles = GenerateParticles();
             _particles.SetData(particles);
 
+            _renderTexture = new RenderTexture(256, 256, 1);
+            _renderTexture.enableRandomWrite = true;
+            _renderTexture.useMipMap = false;
+
+            Renderer ren = _quad.GetComponent<Renderer>();
+            _material = ren.material;
+            _material.mainTexture = _renderTexture;
+
             _kernelIndex = _computeShader.FindKernel("CurlNoiseMain");
+            _kernelIndex2 = _computeShader.FindKernel("OutputResult");
         }
     }
 }
