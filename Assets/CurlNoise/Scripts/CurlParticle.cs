@@ -377,9 +377,10 @@ namespace CurlNoiseSample
             Particle[] particles = GenerateParticles();
             _particles.SetData(particles);
 
-            _renderTexture = new RenderTexture(256, 256, 1);
+            _renderTexture = new RenderTexture(256, 256, 0);
             _renderTexture.enableRandomWrite = true;
             _renderTexture.useMipMap = false;
+            _renderTexture.Create();
 
             Renderer ren = _quad.GetComponent<Renderer>();
             _material = ren.material;
