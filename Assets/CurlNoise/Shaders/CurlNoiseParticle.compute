@@ -68,7 +68,7 @@ float3 BlendVectors(float3 potential, float3 normal, float alpha)
 // 計算点から、障害物への距離を計算する
 float SampleDistance(float3 p)
 {
-    float3 u = _SphereParam.xyz * 2.0 - p;
+    float3 u = _SphereParam.xyz - p;
     float d = length(u);
     return d - _SphereParam.w;
 }
@@ -94,7 +94,7 @@ float3 SamplePotential(float3 pos)
     }
 
     float alpha = abs(Ramp(distance / _RingRadius));
-    //psi += BlendVectors(_RisingForce, normal, alpha);
+    psi += BlendVectors(_RisingForce, normal, alpha);
 
     float3 risingForce = _SphereParam.xyz - pos;
     risingForce = float3(-risingForce.z, 0, risingForce.x);
@@ -269,11 +269,11 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 [numthreads(8, 8, 1)]
 void OutputResult(uint2 id : SV_DispatchThreadID)
 {
-    float2 pos2 = (float2(id) / 256.0) * 2.0 - 1.0;
+    float2 pos2 = (float2(id) / 256.0) - 0.5;
     float3 pos = float3(pos2, 0);
 
     // distance field
-    //float d = SampleDistance(pos);
+    //float d = SampleDistance(float3(pos, 0));
     //_Result[id] = float4(d, d, d, 1);
 
     // normal field
