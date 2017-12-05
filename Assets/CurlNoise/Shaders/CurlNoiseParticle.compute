@@ -56,7 +56,7 @@ inline float sqr(float x)
 }
 
 // ふたつのベクトルを合成する
-float3 BlendVectors(float3 potential, float3 normal, float alpha)
+float3 Constraint(float3 potential, float3 normal, float alpha)
 {
     // (N・ψ(X))を計算する
     float dp = dot(potential, normal);
@@ -82,6 +82,7 @@ float3 SamplePotential(float3 pos)
 
     float3 psi = float3(0, 0, 0);
 
+    // 高さに応じて乱流の度合いを変化させる（上にいくほど拡散するように）
     float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
     for (int i = 0; i < 3; i++)
     {
@@ -89,12 +90,12 @@ float3 SamplePotential(float3 pos)
 
         float3 s = pos / _NoiseScales[i];
 
-        float3 psi_i = BlendVectors(Pnoise(s), normal, alpha);
+        float3 psi_i = Constraint(Pnoise(s), normal, alpha);
         psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
     float alpha = abs(Ramp(distance / _RingRadius));
-    psi += BlendVectors(_RisingForce, normal, alpha);
+    psi += Constraint(_RisingForce, normal, alpha);
 
     float3 risingForce = _SphereParam.xyz - pos;
     risingForce = float3(-risingForce.z, 0, risingForce.x);
@@ -116,7 +117,7 @@ float3 SamplePotential(float3 pos)
         float rmag = _RingMagnitude / b;
 
         float3 rpsi = rmag * risingForce;
-        psi += BlendVectors(rpsi, normal, alpha);
+        psi += Constraint(rpsi, normal, alpha);
         ringY -= _RingSpeed * invSecond;
     }
 
