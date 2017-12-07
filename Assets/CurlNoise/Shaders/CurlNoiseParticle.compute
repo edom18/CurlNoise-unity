@@ -59,10 +59,10 @@ inline float sqr(float x)
 float3 Constraint(float3 potential, float3 normal, float alpha)
 {
     // (N・ψ(X))を計算する
-    float dp = dot(potential, normal);
+    float dp = abs(dot(potential, normal));
 
     // ψ_constrained(X) = αψ(X) + (1 - α)N(N・ψ(X))
-    return alpha * potential + (1.0 - alpha) * dp * normal;
+    return (alpha * potential) + ((1.0 - alpha) * dp * normal);
 }
 
 // 計算点から、障害物への距離を計算する
@@ -94,7 +94,8 @@ float3 SamplePotential(float3 pos)
         psi += psi_i * heightFactor * _NoiseGain[i];
     }
 
-    float alpha = abs(Ramp(distance / _RingRadius));
+    float lScale = 0.1;
+    float alpha = Ramp(abs(distance) / lScale);
     psi += Constraint(_RisingForce, normal, alpha);
 
     float3 risingForce = _SphereParam.xyz - pos;
@@ -106,6 +107,7 @@ float3 SamplePotential(float3 pos)
     float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
     float invSecond = 1.0 / _RingPerSecond;
     float ringY = _PlumeCeiling;
+    alpha = Ramp(abs(distance) / _RingRadius);
 
     // 「煙の柱（Plume）」の下端以下になるまで繰り返す
     while (ringY > _PlumeBase)
@@ -245,8 +247,6 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
     float3 pos = _Particles[id].position;
 
     float3 velocity = CurlNoise(pos);
-    //float3 midx = pos + 0.5 * _DeltaTime * velocity * _CurlNoiseIntencity * _SpeedFactor;
-    //_Particles[id].position += CurlNoise(midx) * _SpeedFactor * _CurlNoiseIntencity * _DeltaTime;
 
     _Particles[id].velocity = velocity * _SpeedFactor * _CurlNoiseIntencity;
     _Particles[id].position += _Particles[id].velocity * _DeltaTime;
@@ -274,8 +274,8 @@ void OutputResult(uint2 id : SV_DispatchThreadID)
     float3 pos = float3(pos2, 0);
 
     // distance field
-    //float d = SampleDistance(float3(pos, 0));
-    //_Result[id] = float4(d, d, d, 1);
+    //float d = SampleDistance(pos);
+    //_Result[id] = float4(d.xxx, 1);
 
     // normal field
     float3 normal = (ComputeGradient(pos) + 1.0) * 0.5;
