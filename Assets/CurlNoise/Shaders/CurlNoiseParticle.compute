@@ -40,6 +40,7 @@ float _SpeedFactor;
 float _DeltaTime;
 float _CurlNoiseIntencity;
 
+float _Time;
 float _PlumeBase;
 float _PlumeHeight;
 float _PlumeCeiling;
@@ -75,12 +76,14 @@ float SampleDistance(float3 p)
 
 // α = ramp(d(x)/d0)
 // ψ_constrainted(x) = αψ(x) + (1 - α)n(n・ψ(x))
-float3 SamplePotential(float3 pos)
+float3 SamplePotential(float3 pos, float time)
 {
     float3 normal = ComputeGradient(pos);
     float distance = SampleDistance(pos);
 
     float3 psi = float3(0, 0, 0);
+
+    const float3 f = float3(0, 2, 0);
 
     // 高さに応じて乱流の度合いを変化させる（上にいくほど拡散するように）
     float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
@@ -91,18 +94,18 @@ float3 SamplePotential(float3 pos)
         float3 s = pos / _NoiseScales[i];
 
         float3 psi_i = Constraint(Pnoise(s), normal, alpha);
-        psi += psi_i * heightFactor * _NoiseGain[i];
+        psi += psi_i * heightFactor * _NoiseGain[i] * (f * sin(time));
     }
 
     float lScale = 0.1;
-    float alpha = Ramp(abs(distance) / lScale);
+    float alpha = abs(Ramp(distance / lScale));
     psi += Constraint(_RisingForce, normal, alpha);
 
     float3 risingForce = _SphereParam.xyz - pos;
     risingForce = float3(-risingForce.z, 0, risingForce.x);
 
-    // ringの半径？
-    // XZ平面の中心からの半径？ RingRadius？
+     ringの半径？
+     XZ平面の中心からの半径？ RingRadius？
     float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
     float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
     float invSecond = 1.0 / _RingPerSecond;
@@ -155,12 +158,12 @@ float PerlinNoise(float3 vec)
     vec *= 2.0;
     amp *= 0.5;
 
-    //for (int i = 0; i < _Octaves; i++)
-    //{
-    //    result += Noise(vec) * amp;
-    //    vec *= 2.0;
-    //    amp *= 0.5;
-    //}
+    for (int i = 0; i < _Octaves; i++)
+    {
+        result += Noise(vec) * amp;
+        vec *= 2.0;
+        amp *= 0.5;
+    }
 
     return result;
 }
@@ -217,7 +220,7 @@ float3 Pnoise(float3 vec)
 }
 
 
-float3 CurlNoise(float3 p)
+float3 CurlNoise(Particle p)
 {
     const float e = 0.0009765625;
     const float e2 = 2.0 * e;
@@ -227,12 +230,14 @@ float3 CurlNoise(float3 p)
     const float3 dy = float3(0.0, e, 0.0);
     const float3 dz = float3(0.0, 0.0, e);
 
-    float3 p_x0 = SamplePotential(p - dx);
-    float3 p_x1 = SamplePotential(p + dx);
-    float3 p_y0 = SamplePotential(p - dy);
-    float3 p_y1 = SamplePotential(p + dy);
-    float3 p_z0 = SamplePotential(p - dz);
-    float3 p_z1 = SamplePotential(p + dz);
+    float3 pos = p.position;
+
+    float3 p_x0 = SamplePotential(pos - dx, p.time);
+    float3 p_x1 = SamplePotential(pos + dx, p.time);
+    float3 p_y0 = SamplePotential(pos - dy, p.time);
+    float3 p_y1 = SamplePotential(pos + dy, p.time);
+    float3 p_z0 = SamplePotential(pos - dz, p.time);
+    float3 p_z1 = SamplePotential(pos + dz, p.time);
 
     float x = (p_y1.z - p_y0.z) - (p_z1.y + p_z0.y);
     float y = (p_z1.x - p_z0.x) - (p_x1.z + p_x0.z);
@@ -246,7 +251,7 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
 {
     float3 pos = _Particles[id].position;
 
-    float3 velocity = CurlNoise(pos);
+    float3 velocity = CurlNoise(_Particles[id]);
 
     _Particles[id].velocity = velocity * _SpeedFactor * _CurlNoiseIntencity;
     _Particles[id].position += _Particles[id].velocity * _DeltaTime;

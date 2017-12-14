@@ -259,6 +259,7 @@ namespace CurlNoiseSample
             Vector3 rf = _risingForce;
             _computeShader.SetFloats("_RisingForce", new[] { rf.x, rf.y, rf.z });
 
+            _computeShader.SetFloat("_Time", Time.time);
             _computeShader.SetFloat("_PlumeBase", _plumeBase);
             _computeShader.SetFloat("_PlumeHeight", _plumeHeight);
             _computeShader.SetFloat("_RingRadius", _ringRadius);
