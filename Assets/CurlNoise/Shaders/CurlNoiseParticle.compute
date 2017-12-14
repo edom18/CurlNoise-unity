@@ -104,8 +104,8 @@ float3 SamplePotential(float3 pos, float time)
     float3 risingForce = _SphereParam.xyz - pos;
     risingForce = float3(-risingForce.z, 0, risingForce.x);
 
-     ringの半径？
-     XZ平面の中心からの半径？ RingRadius？
+    // ringの半径？
+    // XZ平面の中心からの半径？ RingRadius？
     float rr = sqrt(pos.x * pos.x + pos.z * pos.z);
     float temp = sqr(rr - _RingRadius) + sqr(rr + _RingRadius) + _RingFalloff;
     float invSecond = 1.0 / _RingPerSecond;
