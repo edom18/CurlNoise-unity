@@ -83,7 +83,7 @@ float3 SamplePotential(float3 pos, float time)
 
     float3 psi = float3(0, 0, 0);
 
-    const float3 f = float3(0, 2, 0);
+    const float3 f = float3(2, 0, 2);
 
     // 高さに応じて乱流の度合いを変化させる（上にいくほど拡散するように）
     float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
