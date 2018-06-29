@@ -87,7 +87,7 @@ float3 SamplePotential(float3 pos, float time)
     float heightFactor = Ramp((pos.y - _PlumeBase) / _PlumeHeight);
     for (int i = 0; i < 3; i++)
     {
-        float alpha = abs(Ramp(distance / _NoiseScales[i]));
+        float alpha = Ramp(abs(distance) / _NoiseScales[i]);
 
         float3 s = pos / _NoiseScales[i];
 
