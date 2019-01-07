@@ -9,7 +9,7 @@ namespace CurlNoiseSample
     public struct Particle
     {
         public int id;
-        public bool active;
+        public int active;
         public Vector3 position;
         public Vector3 velocity;
         public Vector3 color;
@@ -344,7 +344,7 @@ namespace CurlNoiseSample
                 Particle p = new Particle
                 {
                     id = i,
-                    active = true,
+                    active = 0,
                     position = new Vector3(x, y, z),
                     color = new Vector3(r, g, b),
                     scale = 1.0f,

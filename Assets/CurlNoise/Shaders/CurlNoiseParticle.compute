@@ -14,7 +14,7 @@ float3 Pnoise(float3 vec);
 struct Particle
 {
     int id;
-    bool active;
+    int active;
     float3 position;
     float3 velocity;
     float3 color;
@@ -255,7 +255,7 @@ void CurlNoiseMain(uint id : SV_DispatchThreadID)
     float scale = 1.0 - (_Particles[id].time / _Particles[id].lifeTime);
     if (scale < 0)
     {
-        //_Particles[id].active = false;
+        //_Particles[id].active = 0;
         scale = 1.0;
         float x = Rand(_Particles[id].position +     0) * 2.0 - 1.0;
         float y = Rand(_Particles[id].position + 100.0) * 2.0 - 1.0;

@@ -12,7 +12,7 @@
         struct Particle
         {
             int id;
-            bool active;
+            int active;
             float3 position;
             float3 velocity;
             float3 color;
